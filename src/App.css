@@ -28,6 +28,45 @@
   color: #61dafb;
 }
 
+.cuberow {
+  color: white !important;
+}
+
+.cuberow.WHITE {
+  color: black !important;
+  background-color: white;
+}
+.cuberow.BLUE {
+  /* color: blue; */
+  background-color: blue;
+}
+.cuberow.RED {
+  /* color: red; */
+  background-color: red;
+}
+.cuberow.GREEN {
+  /* color: green; */
+  background-color: green;
+}
+.cuberow.ORANGE {
+  /* color: orange; */
+  background-color: orange;
+}
+.cuberow.YELLOW {
+  color: black !important;
+  background-color: yellow;
+}
+
+.controls-top {
+  display: flex;
+  justify-content: space-between;
+}
+
+.checkbox {
+  width: 50px;
+  height: 50px;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
