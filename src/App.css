@@ -56,6 +56,10 @@
   color: black !important;
   background-color: yellow;
 }
+.cuberow.BLACK {
+  color: white !important;
+  background-color: BLACK;
+}
 
 .controls-top {
   display: flex;

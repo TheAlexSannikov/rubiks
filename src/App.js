@@ -9,7 +9,7 @@ class App extends React.Component {
 
   getCube() {
     return(
-      <Cube displayedFace={'FRONT'}/>
+      <Cube/>
     );
   }
 
