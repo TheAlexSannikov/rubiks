@@ -273,15 +273,15 @@ class Cube extends React.Component {
           return (
 
                <>
-                    <Grid xs={12} spacing={0} container direction="column" justify={"center"}>
+                    <Grid spacing={0} container direction="column" justify={"center"}>
 
 
-                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                         <Grid spacing={0} container direction="row" justify={"center"}>
                               <Grid item xs={4}>
                                    <CubeFace faceArr={this.state.faces["TOP"]} facePosition={"TOP"} lookToFace={this.lookToTopFace} />
                               </Grid>
                          </Grid>
-                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                         <Grid spacing={0} container direction="row" justify={"center"}>
                               <Grid item>
                                    <CubeFace faceArr={this.state.faces["LEFT"]} facePosition={"LEFT"} lookToFace={this.lookToLeftFace} />
                               </Grid>
@@ -292,12 +292,12 @@ class Cube extends React.Component {
                                    <CubeFace faceArr={this.state.faces["RIGHT"]} facePosition={"RIGHT"} lookToFace={this.lookToRightFace} />
                               </Grid>
                          </Grid>
-                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                         <Grid  spacing={0} container direction="row" justify={"center"}>
                               <Grid item xs={4}>
                                    <CubeFace faceArr={this.state.faces["BOTTOM"]} facePosition={"BOTTOM"} lookToFace={this.lookToBottomFace} />
                               </Grid>
                          </Grid>
-                         <Grid Grid xs={12} spacing={0} container direction="row" justify={"center"} >
+                         <Grid spacing={0} container direction="row" justify={"center"} >
                               {this.getBottomControls()}
                          </Grid>
                     </Grid>
