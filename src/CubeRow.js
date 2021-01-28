@@ -1,30 +1,36 @@
 import React from 'react';
 import { Grid, Paper } from '@material-ui/core';
 
-class CubeRow extends React.Component {
-     constructor(props) {
-          super(props)
-     }
-
-
-     render() {
-          if (this.props.row === undefined)
-               return
-
-          return (
-               <React.Fragment>
-                    <Grid item xs={4}>
-                         <Paper className={`cuberow left ${this.props.row[0]}`} > {this.props.rowNumber} , {0} </Paper>
-                    </Grid>
-                    <Grid item xs={4}>
-                         <Paper className={`cuberow center ${this.props.row[1]}`}> {this.props.rowNumber} , {1} </Paper>
-                    </Grid>
-                    <Grid className={'right'} item xs={4}>
-                         <Paper className={`cuberow right ${this.props.row[2]}`}> {this.props.rowNumber} , {2} </Paper>
-                    </Grid>
-               </React.Fragment>
-          );
-     }
+function CubeRow(props) {
+     if (props.row === undefined)
+          return
+     return (props.front ?
+          <>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow left ${props.row[0]}`}> {props.rowNumber} , {0} </Paper>
+               </Grid>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow center ${props.row[1]}`} onClick={(e) => props.handleCenterClick(e)} onContextMenu={(e) => {
+                         props.handleCenterClick(e); e.preventDefault();
+                    }}> {props.rowNumber} , {1} </Paper>
+               </Grid>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow right ${props.row[2]}`}> {props.rowNumber} , {2} </Paper>
+               </Grid>
+          </>
+          :
+          <>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow left ${props.row[0]}`} > {props.rowNumber} , {0} </Paper>
+               </Grid>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow center ${props.row[1]}`}> {props.rowNumber} , {1} </Paper>
+               </Grid>
+               <Grid item xs={4}>
+                    <Paper className={`cuberow right ${props.row[2]}`}> {props.rowNumber} , {2} </Paper>
+               </Grid>
+          </>
+     );
 }
 
 export default CubeRow;

@@ -8,15 +8,15 @@ class App extends React.Component {
   }
 
   getCube() {
-    return(
-      <Cube/>
+    return (
+      <Cube />
     );
   }
 
   render() {
     return (
       <>
-      {this.getCube()}
+        {this.getCube() }
       </>
     )
   }

@@ -1,3 +1,7 @@
+body {
+  background-color: gray;
+}
+
 .App {
   text-align: center;
 }
@@ -30,6 +34,7 @@
 
 .cuberow {
   color: white !important;
+  max-width: 10vw;
 }
 
 .cuberow.WHITE {
@@ -50,7 +55,7 @@
 }
 .cuberow.ORANGE {
   /* color: orange; */
-  background-color: orange;
+  background-color: rgb(238, 124, 82);
 }
 .cuberow.YELLOW {
   color: black !important;
@@ -61,7 +66,7 @@
   background-color: BLACK;
 }
 
-.controls-top {
+.controls {
   display: flex;
   justify-content: space-between;
 }

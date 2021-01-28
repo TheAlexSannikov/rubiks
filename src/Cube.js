@@ -1,7 +1,7 @@
 import React from 'react';
 import './App.css';
 import { Grid } from '@material-ui/core';
-import CubeRow from './CubeRow';
+import CubeFace from './CubeFace';
 
 const colors = ['WHITE', 'BLUE', 'RED', 'GREEN', 'ORANGE', 'YELLOW']; // dictates the starting position; and center pieces 
 const faceNames = ['BOTTOM', 'FRONT', 'RIGHT', 'BACK', 'LEFT', 'TOP'];
@@ -11,25 +11,31 @@ class Cube extends React.Component {
           super(props)
           this.state = {
                faces: {},
-               // displayedFace: props.displayedFace,
           }
           this.lookToRightFace = this.lookToRightFace.bind(this);
           this.lookToLeftFace = this.lookToLeftFace.bind(this);
           this.lookToTopFace = this.lookToTopFace.bind(this);
           this.lookToBottomFace = this.lookToBottomFace.bind(this);
           this.rotateFrontCW = this.rotateFrontCW.bind(this);
+          this.rotateFront180Deg = this.rotateFront180Deg.bind(this);
+          this.rotateFrontCCW = this.rotateFrontCCW.bind(this);
           this.makeTopBlack = this.makeTopBlack.bind(this); //debug purposes
+          this.getTopControls = this.getTopControls.bind(this);
+          this.getBottomControls = this.getBottomControls.bind(this);
+
      }
 
      rotateFace(face, dir) { //lookToRight: top -> cw; bottom -> ccw
-          if (dir !== 'ccw' && dir !== 'cw')
-               throw 'dir can only be ccw or cw'
+          if (dir !== 'ccw' && dir !== 'cw') {
+               console.error('dir can only be ccw or cw');
+               return;
+          }
           //lazy
           let newFace = [];
           let top = [];
           let meat = [];
           let bottom = [];
-          if (dir == 'cw') {
+          if (dir === 'cw') {
                top.push(face[2][0]); top.push(face[1][0]); top.push(face[0][0]);
                meat.push(face[2][1]); meat.push(face[1][1]); meat.push(face[0][1]);
                bottom.push(face[2][2]); bottom.push(face[1][2]); bottom.push(face[0][2]);
@@ -102,8 +108,8 @@ class Cube extends React.Component {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["TOP"];
-          newFaces["TOP"] = this.rotateFace(this.rotateFace(faces["BACK"],"cw"), "cw"); //fix issue?
-          newFaces["BACK"] = this.rotateFace(this.rotateFace(faces["BOTTOM"],"cw"), "cw"); //fix issue?;
+          newFaces["TOP"] = this.rotateFace(this.rotateFace(faces["BACK"], "cw"), "cw"); //fix issue?
+          newFaces["BACK"] = this.rotateFace(this.rotateFace(faces["BOTTOM"], "cw"), "cw"); //fix issue?;
           newFaces["BOTTOM"] = faces["FRONT"];
 
           newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "cw");
@@ -116,8 +122,8 @@ class Cube extends React.Component {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["BOTTOM"];
-          newFaces["BOTTOM"] = this.rotateFace(this.rotateFace(faces["BACK"],"cw"), "cw"); //fix issue?
-          newFaces["BACK"] = this.rotateFace(this.rotateFace(faces["TOP"],"cw"), "cw"); //fix issue?
+          newFaces["BOTTOM"] = this.rotateFace(this.rotateFace(faces["BACK"], "cw"), "cw"); //fix issue?
+          newFaces["BACK"] = this.rotateFace(this.rotateFace(faces["TOP"], "cw"), "cw"); //fix issue?
           newFaces["TOP"] = faces["FRONT"];
           newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "ccw");
           newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "cw")
@@ -125,16 +131,16 @@ class Cube extends React.Component {
           // console.log(this.state.faces);
      }
 
-     rotateFrontCW(cube) {
-          if (cube == undefined || cube["FRONT"] === undefined)
-               return
+     rotateFrontCW(cube, directlyUpdateCube) {
+          if (cube === undefined || cube["FRONT"] === undefined) {
+               if (this.state.faces !== undefined) {
+                    cube = this.state.faces;
+               } else {
+                    return;
+               }
+          }
 
           let newCube = {};
-          // for (const faceName in cube) { //copy cube
-          //      const face = object[faceName];
-          //      newCube[faceName] = face;
-          // }
-
 
           let leftFace = JSON.parse(JSON.stringify(cube["LEFT"]));
           let topFace = JSON.parse(JSON.stringify(cube["TOP"]));
@@ -149,10 +155,6 @@ class Cube extends React.Component {
           topFace[2][0] = cube["LEFT"][2][2];
           topFace[2][1] = cube["LEFT"][1][2];
           topFace[2][2] = cube["LEFT"][0][2];
-
-          // topFace[2][0] = cube["LEFT"][0][2];
-          // topFace[2][1] = cube["LEFT"][1][2];
-          // topFace[2][2] = cube["LEFT"][2][2];
 
           rightFace[0][0] = cube["TOP"][2][0];
           rightFace[1][0] = cube["TOP"][2][1];
@@ -170,14 +172,34 @@ class Cube extends React.Component {
           newCube["TOP"] = topFace;
           newCube["RIGHT"] = rightFace;
           newCube["BOTTOM"] = bottomFace;
-          console.log(newCube)
-          return newCube;
+
+          if (directlyUpdateCube) {
+               this.setState({ faces: newCube });
+          } else {
+               return newCube;
+          }
+     }
+
+     rotateFront180Deg(cube) {
+          let newCube = this.rotateFrontCW(cube);
+          return this.rotateFrontCW(newCube);
+     }
+
+     rotateFrontCCW(cube, directlyUpdateCube) {
+          console.log("in cube.js. Rotate front CCW")
+          let newCube = this.rotateFront180Deg(cube);
+          newCube = this.rotateFrontCW(newCube);
+          if (directlyUpdateCube) {
+               this.setState({ faces: newCube });
+          } else {
+               return newCube;
+          }
      }
 
      makeTopBlack() {
           let newFaces = JSON.parse(JSON.stringify(this.state.faces))
           let face = this.state.faces["FRONT"];
-          if (face === undefined || face[0] == undefined || face[0][0] == undefined) {
+          if (face === undefined || face[0] === undefined || face[0][0] === undefined) {
                console.log("could not set top black");
                return
           }
@@ -190,14 +212,7 @@ class Cube extends React.Component {
           this.setState({ faces: newFaces });
      }
 
-     displayFace(faceName) {
-          let face = this.state.faces[faceName];
-          if (face === undefined)
-               return
-          let top = face[0];
-          let meat = face[1];
-          let bottom = face[2];
-
+     getTopControls() {
           return (
                <>
                     <div className="controls controls-top">
@@ -205,55 +220,40 @@ class Cube extends React.Component {
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
                                    onChange={this.lookToLeftFace} />
                          </label>
                          <label> look to top
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
                                    onChange={this.lookToTopFace} />
                          </label>
                          <label> look to bottom
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
                                    onChange={this.lookToBottomFace} />
                          </label>
                          <label> look to right
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
                                    onChange={this.lookToRightFace} />
                          </label>
                     </div>
-                    <Grid container spacing={1}>
+               </>
+          )
+     }
 
-                         <Grid className={'top'} container item xs={12} spacing={3}>
-                              <CubeRow row={top} rowNumber={0} />
-                         </Grid>
-                         <Grid className={'meat'} container item xs={12} spacing={3}>
-                              <CubeRow row={meat} rowNumber={1} />
-                         </Grid>
-                         <Grid className={'bottom'} container item xs={12} spacing={3}>
-                              <CubeRow row={bottom} rowNumber={2} />
-                         </Grid>
-                    </Grid>
+     getBottomControls() {
+          return (
+               <>
                     <div className="controls controls-bottom">
-                         <label> rotate front CW
+                         <label> rotate front 180 degrees
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
-                                   onChange={() => { this.setState({ faces: this.rotateFrontCW(this.state.faces) }); }} />
+                                   onChange={() => { this.setState({ faces: this.rotateFront180Deg(this.state.faces) }); }} />
                          </label>
                     </div>
 
@@ -262,26 +262,50 @@ class Cube extends React.Component {
                          <input
                                    type="checkbox"
                                    className="checkbox"
-                                   // value="1"
-                                   // checked={}
                                    onChange={this.makeTopBlack} />
                          </label>
                     </div>
                </>
-          );
+          )
      }
 
      render() {
           return (
-               <div>
-                    {this.displayFace("FRONT")}
-               </div>
+
+               <>
+                    <Grid xs={12} spacing={0} container direction="column" justify={"center"}>
+
+
+                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                              <Grid item xs={4}>
+                                   <CubeFace faceArr={this.state.faces["TOP"]} facePosition={"TOP"} lookToFace={this.lookToTopFace} />
+                              </Grid>
+                         </Grid>
+                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                              <Grid item>
+                                   <CubeFace faceArr={this.state.faces["LEFT"]} facePosition={"LEFT"} lookToFace={this.lookToLeftFace} />
+                              </Grid>
+                              <Grid item>
+                                   <CubeFace faceArr={this.state.faces["FRONT"]} facePosition={"FRONT"} rotateCW={this.rotateFrontCW} rotateCCW={this.rotateFrontCCW} />
+                              </Grid>
+                              <Grid item>
+                                   <CubeFace faceArr={this.state.faces["RIGHT"]} facePosition={"RIGHT"} lookToFace={this.lookToRightFace} />
+                              </Grid>
+                         </Grid>
+                         <Grid xs={12} spacing={0} container direction="row" justify={"center"}>
+                              <Grid item xs={4}>
+                                   <CubeFace faceArr={this.state.faces["BOTTOM"]} facePosition={"BOTTOM"} lookToFace={this.lookToBottomFace} />
+                              </Grid>
+                         </Grid>
+                         <Grid Grid xs={12} spacing={0} container direction="row" justify={"center"} >
+                              {this.getBottomControls()}
+                         </Grid>
+                    </Grid>
+
+
+               </>
           )
      }
-
-     // taken from https://material-ui.com/components/grid/
-
-
 }
 
 export default Cube;
