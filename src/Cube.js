@@ -22,7 +22,6 @@ class Cube extends React.Component {
           this.makeTopBlack = this.makeTopBlack.bind(this); //debug purposes
           this.getTopControls = this.getTopControls.bind(this);
           this.getBottomControls = this.getBottomControls.bind(this);
-
      }
 
      rotateFace(face, dir) { //lookToRight: top -> cw; bottom -> ccw
@@ -301,8 +300,6 @@ class Cube extends React.Component {
                               {this.getBottomControls()}
                          </Grid>
                     </Grid>
-
-
                </>
           )
      }

@@ -2,24 +2,11 @@ import React from 'react';
 import Cube from './Cube'
 import './App.css';
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
-  getCube() {
-    return (
-      <Cube />
-    );
-  }
-
-  render() {
+function App (props) {
     return (
       <>
-        {this.getCube() }
+        <Cube />
       </>
     )
-  }
 }
-
 export default App;

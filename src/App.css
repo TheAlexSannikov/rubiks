@@ -35,30 +35,31 @@ body {
 .cuberow {
   color: white !important;
   max-width: 10vw;
+  min-height: 10vh;
 }
 
 .cuberow.WHITE {
-  color: black !important;
+  color: white !important;
   background-color: white;
 }
 .cuberow.BLUE {
-  /* color: blue; */
+  color: blue !important;
   background-color: blue;
 }
 .cuberow.RED {
-  /* color: red; */
+  color: red !important;
   background-color: red;
 }
 .cuberow.GREEN {
-  /* color: green; */
+  color: green !important;
   background-color: green;
 }
 .cuberow.ORANGE {
-  /* color: orange; */
+  color: rgb(238, 124, 82) !important;
   background-color: rgb(238, 124, 82);
 }
 .cuberow.YELLOW {
-  color: black !important;
+  color: yellow !important;
   background-color: yellow;
 }
 .cuberow.BLACK {
