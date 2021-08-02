@@ -59,7 +59,7 @@ class Cube extends React.Component {
           this.loadInitialState();
      }
 
-     async loadInitialState() {
+     loadInitialState() {
           let newFaces = {}
 
           for (let i = 0; i < 6; i++) {
@@ -72,11 +72,11 @@ class Cube extends React.Component {
                newFaces[faceNames[i]] = face;
           }
 
-          await this.setState({ faces: newFaces })
+          this.setState({ faces: newFaces })
           console.log(this.state.faces)
      }
 
-     async lookToRightFace() {
+     lookToRightFace() {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["RIGHT"];
@@ -86,11 +86,11 @@ class Cube extends React.Component {
 
           newFaces["TOP"] = this.rotateFace(faces["TOP"], 'cw');
           newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], 'ccw');
-          await this.setState({ faces: newFaces, });
+          this.setState({ faces: newFaces, });
           // console.log(this.state.faces);
      }
 
-     async lookToLeftFace() {
+     lookToLeftFace() {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["LEFT"];
@@ -99,11 +99,11 @@ class Cube extends React.Component {
           newFaces["RIGHT"] = faces["FRONT"];
           newFaces["TOP"] = this.rotateFace(faces["TOP"], 'ccw');
           newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], 'cw');
-          await this.setState({ faces: newFaces, });
+          this.setState({ faces: newFaces, });
           // console.log(this.state.faces);
      }
 
-     async lookToTopFace() {
+     lookToTopFace() {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["TOP"];
@@ -113,11 +113,11 @@ class Cube extends React.Component {
 
           newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "cw");
           newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "ccw")
-          await this.setState({ faces: newFaces, });
+          this.setState({ faces: newFaces, });
           // console.log(this.state.faces);
      }
 
-     async lookToBottomFace() {
+     lookToBottomFace() {
           const faces = this.state.faces;
           let newFaces = {};
           newFaces["FRONT"] = faces["BOTTOM"];
@@ -126,7 +126,7 @@ class Cube extends React.Component {
           newFaces["TOP"] = faces["FRONT"];
           newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "ccw");
           newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "cw")
-          await this.setState({ faces: newFaces, });
+          this.setState({ faces: newFaces, });
           // console.log(this.state.faces);
      }
 
@@ -216,25 +216,25 @@ class Cube extends React.Component {
                <>
                     <div className="controls controls-top">
                          <label> look to left
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={this.lookToLeftFace} />
                          </label>
                          <label> look to top
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={this.lookToTopFace} />
                          </label>
                          <label> look to bottom
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={this.lookToBottomFace} />
                          </label>
                          <label> look to right
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={this.lookToRightFace} />
@@ -249,7 +249,7 @@ class Cube extends React.Component {
                <>
                     <div className="controls controls-bottom">
                          <label> rotate front 180 degrees
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={() => { this.setState({ faces: this.rotateFront180Deg(this.state.faces) }); }} />
@@ -258,51 +258,65 @@ class Cube extends React.Component {
 
                     <div className="controls controls-bottom">
                          <label> make top black
-                         <input
+                              <input
                                    type="checkbox"
                                    className="checkbox"
                                    onChange={this.makeTopBlack} />
                          </label>
                     </div>
+                    <form>
+                         <label for="fname">Save as:</label>
+                         <input type="text" id="saveAs" name="saveField"></input>
+                    </form>
+                    <button>
+                         save
+                    </button>
+                    <form>
+                         <label for="fname">load save:</label>
+                         <input type="text" id="loadSave" name="load"></input>
+                    </form>
+                    <button>
+                         save
+                    </button>
                </>
-          )
+                    )
      }
 
-     render() {
+                    render() {
           return (
 
-               <>
-                    <Grid spacing={0} container direction="column" justify={"center"}>
+                    <>
+                         <Grid spacing={0} container direction="column" justify={"center"}>
 
 
-                         <Grid spacing={0} container direction="row" justify={"center"}>
-                              <Grid item xs={4}>
-                                   <CubeFace faceArr={this.state.faces["TOP"]} facePosition={"TOP"} lookToFace={this.lookToTopFace} />
+                              <Grid spacing={0} container direction="row" justify={"center"}>
+                                   <Grid item xs={4}>
+                                        <CubeFace faceArr={this.state.faces["TOP"]} facePosition={"TOP"} lookToFace={this.lookToTopFace} />
+                                   </Grid>
+                              </Grid>
+                              <Grid spacing={0} container direction="row" justify={"center"}>
+                                   <Grid item>
+                                        <CubeFace faceArr={this.state.faces["LEFT"]} facePosition={"LEFT"} lookToFace={this.lookToLeftFace} />
+                                   </Grid>
+                                   <Grid item>
+                                        <CubeFace faceArr={this.state.faces["FRONT"]} facePosition={"FRONT"} rotateCW={this.rotateFrontCW} rotateCCW={this.rotateFrontCCW} />
+                                   </Grid>
+                                   <Grid item>
+                                        <CubeFace faceArr={this.state.faces["RIGHT"]} facePosition={"RIGHT"} lookToFace={this.lookToRightFace} />
+                                   </Grid>
+                              </Grid>
+                              <Grid spacing={0} container direction="row" justify={"center"}>
+                                   <Grid item xs={4}>
+                                        <CubeFace faceArr={this.state.faces["BOTTOM"]} facePosition={"BOTTOM"} lookToFace={this.lookToBottomFace} />
+                                   </Grid>
+                              </Grid>
+                              <Grid spacing={0} container direction="row" justify={"center"} >
+                                   {this.getBottomControls()}
                               </Grid>
                          </Grid>
-                         <Grid spacing={0} container direction="row" justify={"center"}>
-                              <Grid item>
-                                   <CubeFace faceArr={this.state.faces["LEFT"]} facePosition={"LEFT"} lookToFace={this.lookToLeftFace} />
-                              </Grid>
-                              <Grid item>
-                                   <CubeFace faceArr={this.state.faces["FRONT"]} facePosition={"FRONT"} rotateCW={this.rotateFrontCW} rotateCCW={this.rotateFrontCCW} />
-                              </Grid>
-                              <Grid item>
-                                   <CubeFace faceArr={this.state.faces["RIGHT"]} facePosition={"RIGHT"} lookToFace={this.lookToRightFace} />
-                              </Grid>
-                         </Grid>
-                         <Grid  spacing={0} container direction="row" justify={"center"}>
-                              <Grid item xs={4}>
-                                   <CubeFace faceArr={this.state.faces["BOTTOM"]} facePosition={"BOTTOM"} lookToFace={this.lookToBottomFace} />
-                              </Grid>
-                         </Grid>
-                         <Grid spacing={0} container direction="row" justify={"center"} >
-                              {this.getBottomControls()}
-                         </Grid>
-                    </Grid>
-               </>
-          )
+                    </>
+                    )
      }
 }
 
-export default Cube;
+                    export default Cube;
