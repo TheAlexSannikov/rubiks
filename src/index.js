@@ -4,6 +4,9 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+// const mongoose = require('mongoose');
+// mongoose.connect('mongodb://localhost:27017/test');
+
 ReactDOM.render(
   <React.StrictMode>
     <App />
