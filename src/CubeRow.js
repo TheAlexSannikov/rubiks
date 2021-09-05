@@ -1,37 +1,37 @@
-import React from 'react';
+import React from "react";
 
-import { Grid, Paper } from '@material-ui/core';
+import { Grid, Paper } from "@material-ui/core";
 
 function CubeRow(props) {
-     if (props.row === undefined)
-          return
-     return (props.front ?
-          <>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow left ${props.row[0]}`}> {props.rowNumber} , {0} </Paper>
-               </Grid>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow center ${props.row[1]}`} onClick={(e) => props.handleCenterClick(e)} onContextMenu={(e) => {
-                         props.handleCenterClick(e); e.preventDefault();
-                    }}> {props.rowNumber} , {1} </Paper>
-               </Grid>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow right ${props.row[2]}`}> {props.rowNumber} , {2} </Paper>
-               </Grid>
-          </>
-          :
-          <>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow left ${props.row[0]}`} > {props.rowNumber} , {0} </Paper>
-               </Grid>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow center ${props.row[1]}`}> {props.rowNumber} , {1} </Paper>
-               </Grid>
-               <Grid item xs={4}>
-                    <Paper className={`cuberow right ${props.row[2]}`}> {props.rowNumber} , {2} </Paper>
-               </Grid>
-          </>
-     );
+     console.log("CubeRow.js: props");
+     console.log(props);
+	if (props.row === undefined) return;
+
+	console.log("props.row");
+	console.log(props.row);
+
+	let piecesOfRow = [];
+	for (const colNum in props.row) {
+		piecesOfRow[colNum] = (
+			<Grid item xs={4}>
+				<Paper
+					className={`cubepiece ${props.row[colNum]["color"]}`}
+                         piece={props.row[colNum]}     // might be useful to have this information
+				>( {props.row[colNum].coordinates.x}, {props.row[colNum].coordinates.y}, {props.row[colNum].coordinates.z} )</Paper>
+			</Grid>
+		);
+	}
+
+	// construct row using piecesOfRow
+	let row = (
+		<Grid item xs={4}>
+			{piecesOfRow[-1]}
+			{piecesOfRow[0]}
+			{piecesOfRow[1]}
+		</Grid>
+	);
+
+	return <>{row}</>;
 }
 
 export default CubeRow;

@@ -32,37 +32,37 @@ body {
   color: #61dafb;
 }
 
-.cuberow {
+.cubepiece {
   color: white !important;
   max-width: 10vw;
   min-height: 10vh;
 }
 
-.cuberow.WHITE {
-  color: white !important;
+.cubepiece.WHITE {
+  color: black !important;
   background-color: white;
 }
-.cuberow.BLUE {
-  color: blue !important;
+.cubepiece.BLUE {
+  color: black !important;
   background-color: blue;
 }
-.cuberow.RED {
-  color: red !important;
+.cubepiece.RED {
+  color: black !important;
   background-color: red;
 }
-.cuberow.GREEN {
-  color: green !important;
+.cubepiece.GREEN {
+  color: black !important;
   background-color: green;
 }
-.cuberow.ORANGE {
-  color: rgb(238, 124, 82) !important;
+.cubepiece.ORANGE {
+  color: black !important;
   background-color: rgb(238, 124, 82);
 }
-.cuberow.YELLOW {
-  color: yellow !important;
+.cubepiece.YELLOW {
+  color: black !important;
   background-color: yellow;
 }
-.cuberow.BLACK {
+.cubepiece.BLACK {
   color: white !important;
   background-color: BLACK;
 }

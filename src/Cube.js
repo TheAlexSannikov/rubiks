@@ -6,13 +6,52 @@ import CubeFace from "./CubeFace";
 
 const colors = ["WHITE", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]; // dictates the starting position; and center pieces
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
-// const newCubeSaveState = 
+const initialFaceColors = {
+	FRONT: "BLUE",
+	BACK: "GREEN",
+	RIGHT: "RED",
+	LEFT: "ORANGE",
+	BOTTOM: "WHITE",
+	TOP: "YELLOW",
+};
+const axes = { x: "X", y: "Y", z: "Z" };
+
+const rotationDirs = { cw: -90, ccw: +90 };
+
+const pieceFilter = {
+	posX: "POSX",
+	negX: "NEGX",
+	posY: "POSY",
+	negY: "NEGY",
+	posZ: "POSZ",
+	negZ: "NEGZ",
+};
+
+// each face is either +/-1 in one of three dimensions
+// const faceCoords = {
+// 	FRONT: (1, 0, 0),
+// 	BACK: (-1, 0, 0),
+// 	RIGHT: (0, 1, 0),
+// 	LEFT: (0, -1, 0),
+// 	TOP: (0, 0, 1),
+// 	BOTTOM: (0, 0, -1),
+// };
+// used during initalization. Not sure if row & col need +/- differentiation
+const faceCoords = {
+	FRONT: { frozen: "+X", row: "Y", col: "Z" },
+	BACK: { frozen: "-X", row: "Y", col: "Z" },
+	RIGHT: { frozen: "+Y", row: "X", col: "Z" },
+	LEFT: { frozen: "-Y", row: "X", col: "Z" },
+	TOP: { frozen: "+Z", row: "Y", col: "X" },
+	BOTTOM: { frozen: "-Z", row: "Y", col: "X" },
+};
+// const newCubeSaveState =
 
 class Cube extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			faces: {},
+			cube: {},
 		};
 		this.lookToRightFace = this.lookToRightFace.bind(this);
 		this.lookToLeftFace = this.lookToLeftFace.bind(this);
@@ -26,11 +65,16 @@ class Cube extends React.Component {
 		this.getBottomControls = this.getBottomControls.bind(this);
 	}
 
-	loadInitialState() {
+	componentDidMount() {
+		this.loadInitialState();
+	}
+
+	loadInitialState_OLD() {
 		let newFaces = {};
 
 		for (let i = 0; i < 6; i++) {
 			let face = []; // row col
+
 			const color = colors[i];
 			for (let row = 0; row < 3; row++) {
 				let col = [color, color, color];
@@ -40,71 +84,112 @@ class Cube extends React.Component {
 		}
 
 		this.setState({ faces: newFaces });
-		console.log(this.state.faces);
+		// console.log(this.state.cube);
 	}
 
+	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
+	createPiece(faceName, row, col, color) {
+		const frozenCoord = faceCoords[faceName].frozen;
+		const rowCoord = faceCoords[faceName].row;
+		const colCoord = faceCoords[faceName].col;
+		let coordinates = {};
+		switch (frozenCoord) {
+			case "+X":
+				coordinates = { x: 1.5, y: row, z: col };
+				break;
+			case "-X":
+				coordinates = { x: -1.5, y: row, z: col };
+				break;
+			case "+Y":
+				coordinates = { x: row, y: 1.5, z: col };
+				break;
+			case "-Y":
+				coordinates = { x: row, y: -1.5, z: col };
+				break;
+			case "+Z":
+				coordinates = { x: col, y: row, z: 1.5 };
+				break;
+			case "-Z":
+				coordinates = { x: col, y: row, z: -1.5 };
+				break;
+
+			default:
+				throw new Error("frozenCoord does not have a valid case!");
+		}
+		return { color: color, coordinates: coordinates };
+	}
+
+	async loadInitialState() {
+		let newCube = {};
+		for (const faceName of faceNames) {
+			let newFace = {};
+			newFace.faceName = faceName;
+
+			const color = initialFaceColors[faceName];
+			if (faceCoords[faceName] == undefined)
+				throw new Error("faceName is undefined");
+
+			// write data to each face
+			for (let row = -1; row < 2; row++) {
+				newFace[row] = {};
+				for (let col = -1; col < 2; col++) {
+					const newPiece = this.createPiece(
+						faceName,
+						row,
+						col,
+						color
+					);
+					newFace[row][col] = newPiece;
+				}
+			}
+			newCube[faceName] = newFace;
+		}
+
+		await this.setState({ cube: newCube });
+		// console.log("this.state.cube:");
+		// console.log(this.state.cube);
+	}
+
+	// use rotation matrix
 	/**
-	 * Save state: 6 arrays
-	 * saveState {
-	 * 	front: {row0: {WHITE,WHITE,WHITE}
-	 * 		    row1: {WHITE,WHITE,WHITE}
-	 * 			row2: {WHITE,WHITE,WHITE}
-	 * 		   } ...
-	 * }
+	 * modifies cube according to a rotation. effects 5 sides.
+	 * face is the face where rotation happens
+	 * dir is either ccw or cw
 	 */
-	// loadSaveState(saveState) {
-	// 	...
-	// }
+	rotateFace(faceOfRotation, dir) {
+		// assume face == front for now. TODO: make versatile
+		// front: positive x
+		// add to sequence
+		// perform rotation on all points with positive x
+		// find all positive x
+		// rotate
 
-	rotateFace(face, dir) {
-		//lookToRight: top -> cw; bottom -> ccw
-		if (dir !== "ccw" && dir !== "cw") {
-			console.error("dir can only be ccw or cw");
-			return;
+		switch (faceOfRotation) {
+			case "FRONT":
+				this.rotateHelper(pieceFilter.posX, axes.X, dir);
+				break;
+			case "BACK":
+				this.rotateHelper(pieceFilter.negX, axes.X, dir); // mirror this?
+				break;
+
+			default:
+				throw new Error("rotate called with an invalid face");
 		}
-		//lazy
-		let newFace = [];
-		let top = [];
-		let meat = [];
-		let bottom = [];
-		if (dir === "cw") {
-			top.push(face[2][0]);
-			top.push(face[1][0]);
-			top.push(face[0][0]);
-			meat.push(face[2][1]);
-			meat.push(face[1][1]);
-			meat.push(face[0][1]);
-			bottom.push(face[2][2]);
-			bottom.push(face[1][2]);
-			bottom.push(face[0][2]);
-
-			newFace.push(top);
-			newFace.push(meat);
-			newFace.push(bottom);
-		} else {
-			top.push(face[0][2]);
-			top.push(face[1][2]);
-			top.push(face[2][2]);
-			meat.push(face[0][1]);
-			meat.push(face[1][1]);
-			meat.push(face[2][1]);
-			bottom.push(face[0][0]);
-			bottom.push(face[1][0]);
-			bottom.push(face[2][0]);
-
-			newFace.push(top);
-			newFace.push(meat);
-			newFace.push(bottom);
-		}
-		return newFace;
 	}
 
-	componentDidMount() {
-		this.loadInitialState();
+	//performs actual rotation, updating this.state.cube
+	rotateHelper(filter, axis, degrees) {
+		// filter out pieces that match the filter. Look through each face.
+		for (const face in this.state.cube) {
+			console.log(face);
+		}
 	}
+
+	// rotates all faces matching the filter along the specified axis by specified degrees
+	rotateHelper(filter, axisOfRotation, degrees) {}
 
 	lookToRightFace() {
-		const faces = this.state.faces;
+		const faces = this.state.cube;
 		let newFaces = {};
 		newFaces["FRONT"] = faces["RIGHT"];
 		newFaces["RIGHT"] = faces["BACK"];
@@ -114,11 +199,11 @@ class Cube extends React.Component {
 		newFaces["TOP"] = this.rotateFace(faces["TOP"], "cw");
 		newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], "ccw");
 		this.setState({ faces: newFaces });
-		// console.log(this.state.faces);
+		// console.log(this.state.cube);
 	}
 
 	lookToLeftFace() {
-		const faces = this.state.faces;
+		const faces = this.state.cube;
 		let newFaces = {};
 		newFaces["FRONT"] = faces["LEFT"];
 		newFaces["LEFT"] = faces["BACK"];
@@ -127,11 +212,11 @@ class Cube extends React.Component {
 		newFaces["TOP"] = this.rotateFace(faces["TOP"], "ccw");
 		newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], "cw");
 		this.setState({ faces: newFaces });
-		// console.log(this.state.faces);
+		// console.log(this.state.cube);
 	}
 
 	lookToTopFace() {
-		const faces = this.state.faces;
+		const faces = this.state.cube;
 		let newFaces = {};
 		newFaces["FRONT"] = faces["TOP"];
 		newFaces["TOP"] = this.rotateFace(
@@ -147,11 +232,11 @@ class Cube extends React.Component {
 		newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "cw");
 		newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "ccw");
 		this.setState({ faces: newFaces });
-		// console.log(this.state.faces);
+		// console.log(this.state.cube);
 	}
 
 	lookToBottomFace() {
-		const faces = this.state.faces;
+		const faces = this.state.cube;
 		let newFaces = {};
 		newFaces["FRONT"] = faces["BOTTOM"];
 		newFaces["BOTTOM"] = this.rotateFace(
@@ -166,13 +251,13 @@ class Cube extends React.Component {
 		newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "ccw");
 		newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "cw");
 		this.setState({ faces: newFaces });
-		// console.log(this.state.faces);
+		// console.log(this.state.cube);
 	}
 
 	rotateFrontCW(cube, directlyUpdateCube) {
 		if (cube === undefined || cube["FRONT"] === undefined) {
-			if (this.state.faces !== undefined) {
-				cube = this.state.faces;
+			if (this.state.cube !== undefined) {
+				cube = this.state.cube;
 			} else {
 				return;
 			}
@@ -226,7 +311,7 @@ class Cube extends React.Component {
 		let newCube = this.rotateFront180Deg(cube);
 		newCube = this.rotateFrontCW(newCube);
 		if (directlyUpdateCube) {
-			console.log(newCube)
+			console.log(newCube);
 			this.setState({ faces: newCube });
 		} else {
 			return newCube;
@@ -234,8 +319,8 @@ class Cube extends React.Component {
 	}
 
 	makeTopBlack() {
-		let newFaces = JSON.parse(JSON.stringify(this.state.faces));
-		let face = this.state.faces["FRONT"];
+		let newFaces = JSON.parse(JSON.stringify(this.state.cube));
+		let face = this.state.cube["FRONT"];
 		if (
 			face === undefined ||
 			face[0] === undefined ||
@@ -311,7 +396,7 @@ class Cube extends React.Component {
 							onChange={() => {
 								this.setState({
 									faces: this.rotateFront180Deg(
-										this.state.faces
+										this.state.cube
 									),
 								});
 							}}
@@ -345,13 +430,28 @@ class Cube extends React.Component {
 	}
 
 	render() {
+		let renderableFaces = {};
+		for (const faceName of faceNames) {
+			const renderableFace = (
+				<CubeFace
+					face={this.state.cube[faceName]}
+					// lookToFace={this.lookToTopFace} // TODO: lookToFace={this.lookToFace(top)};
+					// rotateFace={...} // TODO
+				/>
+			);
+			renderableFaces[faceName] = renderableFace;
+		}
+		// console.log("renderableFaces:");
+		// console.log(renderableFaces);
+
 		return (
 			<>
 				<Grid
 					spacing={0}
 					container
-					direction="column"
+					direction="row"
 					justify={"center"}
+					className = "cube"
 				>
 					<Grid
 						spacing={0}
@@ -360,40 +460,7 @@ class Cube extends React.Component {
 						justify={"center"}
 					>
 						<Grid item xs={4}>
-							<CubeFace
-								faceArr={this.state.faces["TOP"]}
-								facePosition={"TOP"}
-								lookToFace={this.lookToTopFace}
-							/>
-						</Grid>
-					</Grid>
-					<Grid
-						spacing={0}
-						container
-						direction="row"F
-						justify={"center"}
-					>
-						<Grid item>
-							<CubeFace
-								faceArr={this.state.faces["LEFT"]}
-								facePosition={"LEFT"}
-								lookToFace={this.lookToLeftFace}
-							/>
-						</Grid>
-						<Grid item>
-							<CubeFace
-								faceArr={this.state.faces["FRONT"]}
-								facePosition={"FRONT"}
-								rotateCW={this.rotateFrontCW}
-								rotateCCW={this.rotateFrontCCW}
-							/>
-						</Grid>
-						<Grid item>
-							<CubeFace
-								faceArr={this.state.faces["RIGHT"]}
-								facePosition={"RIGHT"}
-								lookToFace={this.lookToRightFace}
-							/>
+							{renderableFaces["TOP"]}
 						</Grid>
 					</Grid>
 					<Grid
@@ -402,12 +469,18 @@ class Cube extends React.Component {
 						direction="row"
 						justify={"center"}
 					>
+						<Grid item>{renderableFaces["LEFT"]}</Grid>
+						<Grid item>{renderableFaces["FRONT"]}</Grid>
+						<Grid item>{renderableFaces["RIGHT"]}</Grid>
+					</Grid>
+					<Grid
+						spacing={0}
+						container
+						direction="row"
+						justify={"center"}
+					>
 						<Grid item xs={4}>
-							<CubeFace
-								faceArr={this.state.faces["BOTTOM"]}
-								facePosition={"BOTTOM"}
-								lookToFace={this.lookToBottomFace}
-							/>
+							{renderableFaces["BOTTOM"]}
 						</Grid>
 					</Grid>
 					<Grid
