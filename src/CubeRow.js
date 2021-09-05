@@ -1,10 +1,10 @@
 import React from "react";
-
+import "./App.css";
 import { Grid, Paper } from "@material-ui/core";
 
 function CubeRow(props) {
-     console.log("CubeRow.js: props");
-     console.log(props);
+	console.log("CubeRow.js: props");
+	console.log(props);
 	if (props.row === undefined) return;
 
 	console.log("props.row");
@@ -13,18 +13,18 @@ function CubeRow(props) {
 	let piecesOfRow = [];
 	for (const colNum in props.row) {
 		piecesOfRow[colNum] = (
-			<Grid item xs={4}>
-				<Paper
-					className={`cubepiece ${props.row[colNum]["color"]}`}
-                         piece={props.row[colNum]}     // might be useful to have this information
-				>( {props.row[colNum].coordinates.x}, {props.row[colNum].coordinates.y}, {props.row[colNum].coordinates.z} )</Paper>
+			<Grid item>
+				<Paper className={`cubepiece ${props.row[colNum]["color"]}`}>
+					( {props.row[colNum].coordinates.x},{" "}
+					{props.row[colNum].coordinates.y},{" "}
+					{props.row[colNum].coordinates.z} )
+				</Paper>
 			</Grid>
 		);
 	}
 
-	// construct row using piecesOfRow
 	let row = (
-		<Grid item xs={4}>
+		<Grid container xs={12} className="cubeRow">
 			{piecesOfRow[-1]}
 			{piecesOfRow[0]}
 			{piecesOfRow[1]}

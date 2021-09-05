@@ -32,11 +32,19 @@ body {
   color: #61dafb;
 }
 
+
 .cubepiece {
-  color: white !important;
-  max-width: 10vw;
-  min-height: 10vh;
+  display: flex;
+  justify-content: center;
+  min-width: 11vw;
 }
+
+.cubeRow {
+  
+  width: 100%;
+  display: block;
+}
+
 
 .cubepiece.WHITE {
   color: black !important;
@@ -67,6 +75,8 @@ body {
   background-color: BLACK;
 }
 
+/*
+
 .controls {
   display: flex;
   justify-content: space-between;
@@ -85,3 +95,4 @@ body {
     transform: rotate(360deg);
   }
 }
+ */

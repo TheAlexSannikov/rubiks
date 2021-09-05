@@ -13,20 +13,13 @@ class CubeFace extends React.Component {
 
 	getFace() {
 		if (this.props.face === undefined) return;
+		console.log("this.props.face");
+		console.log(this.props.face);
 		return (
-			<Grid className={`cubeFace ${this.props.face}`} container spacing={1} direction="row">
-				<Grid className={"top"} container item xs={12} spacing={3}>
-					<CubeRow row={this.props.face[-1]} />
-				</Grid>
-				<Grid className={"meat"} container item xs={12} spacing={3}>
-					<CubeRow
-						row={this.props.face[0]}
-						// handleCenterClick={this.handleCenterPieceClick} // TODO
-					/>
-				</Grid>
-				<Grid className={"bottom"} container item xs={12} spacing={3}>
-					<CubeRow row={this.props.face[1]} />
-				</Grid>
+			<Grid className={`cubeFace ${this.props.face}`} container>
+				<CubeRow row={this.props.face[-1]} className="bottom"></CubeRow>
+				<CubeRow row={this.props.face[0]} className="meat"></CubeRow>
+				<CubeRow row={this.props.face[1]} className="top"></CubeRow>
 			</Grid>
 		);
 	}

@@ -69,56 +69,6 @@ class Cube extends React.Component {
 		this.loadInitialState();
 	}
 
-	loadInitialState_OLD() {
-		let newFaces = {};
-
-		for (let i = 0; i < 6; i++) {
-			let face = []; // row col
-
-			const color = colors[i];
-			for (let row = 0; row < 3; row++) {
-				let col = [color, color, color];
-				face.push(col);
-			}
-			newFaces[faceNames[i]] = face;
-		}
-
-		this.setState({ faces: newFaces });
-		// console.log(this.state.cube);
-	}
-
-	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
-	createPiece(faceName, row, col, color) {
-		const frozenCoord = faceCoords[faceName].frozen;
-		const rowCoord = faceCoords[faceName].row;
-		const colCoord = faceCoords[faceName].col;
-		let coordinates = {};
-		switch (frozenCoord) {
-			case "+X":
-				coordinates = { x: 1.5, y: row, z: col };
-				break;
-			case "-X":
-				coordinates = { x: -1.5, y: row, z: col };
-				break;
-			case "+Y":
-				coordinates = { x: row, y: 1.5, z: col };
-				break;
-			case "-Y":
-				coordinates = { x: row, y: -1.5, z: col };
-				break;
-			case "+Z":
-				coordinates = { x: col, y: row, z: 1.5 };
-				break;
-			case "-Z":
-				coordinates = { x: col, y: row, z: -1.5 };
-				break;
-
-			default:
-				throw new Error("frozenCoord does not have a valid case!");
-		}
-		return { color: color, coordinates: coordinates };
-	}
-
 	async loadInitialState() {
 		let newCube = {};
 		for (const faceName of faceNames) {
@@ -148,6 +98,38 @@ class Cube extends React.Component {
 		await this.setState({ cube: newCube });
 		// console.log("this.state.cube:");
 		// console.log(this.state.cube);
+	}
+
+	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
+	createPiece(faceName, row, col, color) {
+		const frozenCoord = faceCoords[faceName].frozen;
+		const rowCoord = faceCoords[faceName].row;
+		const colCoord = faceCoords[faceName].col;
+		let coordinates = {};
+		switch (frozenCoord) {
+			case "+X":
+				coordinates = { x: 1.5, y: col, z: row }; // coord system may not be correct TODO: fix
+				break;
+			case "-X":
+				coordinates = { x: -1.5, y: col, z: row };
+				break;
+			case "+Y":
+				coordinates = { x: row, y: 1.5, z: col };
+				break;
+			case "-Y":
+				coordinates = { x: row, y: -1.5, z: col };
+				break;
+			case "+Z":
+				coordinates = { x: col, y: row, z: 1.5 };
+				break;
+			case "-Z":
+				coordinates = { x: col, y: row, z: -1.5 };
+				break;
+
+			default:
+				throw new Error("frozenCoord does not have a valid case!");
+		}
+		return { color: color, coordinates: coordinates };
 	}
 
 	// use rotation matrix
@@ -446,50 +428,27 @@ class Cube extends React.Component {
 
 		return (
 			<>
-				<Grid
-					spacing={0}
-					container
-					direction="row"
-					justify={"center"}
-					className = "cube"
-				>
-					<Grid
-						spacing={0}
-						container
-						direction="row"
-						justify={"center"}
-					>
-						<Grid item xs={4}>
-							{renderableFaces["TOP"]}
-						</Grid>
+				<Grid container>
+					<Grid container item xs="4" className="left_column">
+						<Grid item xs="3"></Grid>
+						{renderableFaces["LEFT"]}
+						<Grid item xs="3"></Grid>
 					</Grid>
 					<Grid
-						spacing={0}
 						container
-						direction="row"
-						justify={"center"}
+						direction="column"
+						item
+						xs="4"
+						className="center_column"
 					>
-						<Grid item>{renderableFaces["LEFT"]}</Grid>
-						<Grid item>{renderableFaces["FRONT"]}</Grid>
-						<Grid item>{renderableFaces["RIGHT"]}</Grid>
+						{renderableFaces["TOP"]}
+						{renderableFaces["FRONT"]}
+						{renderableFaces["BOTTOM"]}
 					</Grid>
-					<Grid
-						spacing={0}
-						container
-						direction="row"
-						justify={"center"}
-					>
-						<Grid item xs={4}>
-							{renderableFaces["BOTTOM"]}
-						</Grid>
-					</Grid>
-					<Grid
-						spacing={0}
-						container
-						direction="row"
-						justify={"center"}
-					>
-						{this.getBottomControls()}
+					<Grid container item xs="4" className="right_column">
+						<Grid item xs="3"></Grid>
+						{renderableFaces["RIGHT"]}
+						<Grid item xs="3"></Grid>
 					</Grid>
 				</Grid>
 			</>
