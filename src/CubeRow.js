@@ -5,29 +5,32 @@ import { Grid, Paper } from "@material-ui/core";
 function CubeRow(props) {
 	console.log("CubeRow.js: props");
 	console.log(props);
-	if (props.row === undefined) return;
-
-	console.log("props.row");
-	console.log(props.row);
+	if (props.face === undefined || props.row === undefined) return;
 
 	let piecesOfRow = [];
-	for (const colNum in props.row) {
+	for (const colNum in props.face.grid[props.row]) {
+		const coordinates = props.face["grid"][props.row][colNum].coordinates;
 		piecesOfRow[colNum] = (
 			<Grid item>
-				<Paper className={`cubepiece ${props.row[colNum]["color"]}`}>
-					( {props.row[colNum].coordinates.x},{" "}
-					{props.row[colNum].coordinates.y},{" "}
-					{props.row[colNum].coordinates.z} )
+				<Paper
+					className={`cubepiece ${
+						props.face.grid[props.row][colNum]["color"]
+					}`}
+				>
+					({coordinates.x}, {coordinates.y}, {coordinates.z})
 				</Paper>
 			</Grid>
 		);
 	}
 
+	const leftIndex = props.face.rowColTopLeft[1];
+	const rightIndex = leftIndex === 1 ? -1 : 1;
+
 	let row = (
 		<Grid container xs={12} className="cubeRow">
-			{piecesOfRow[-1]}
+			{piecesOfRow[leftIndex]}
 			{piecesOfRow[0]}
-			{piecesOfRow[1]}
+			{piecesOfRow[rightIndex]}
 		</Grid>
 	);
 

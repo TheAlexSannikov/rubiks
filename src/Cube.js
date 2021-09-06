@@ -2,21 +2,56 @@ import React from "react";
 import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
-// import cubeSaveState from "./CubeSaveState"
 
-const colors = ["WHITE", "BLUE", "RED", "GREEN", "ORANGE", "YELLOW"]; // dictates the starting position; and center pieces
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
-const initialFaceColors = {
-	FRONT: "BLUE",
-	BACK: "GREEN",
-	RIGHT: "RED",
-	LEFT: "ORANGE",
-	BOTTOM: "WHITE",
-	TOP: "YELLOW",
+
+const faceCharacteristics = {
+	FRONT: {
+		initialColor: "BLUE",
+		rowColTopLeft: [1,-1],
+		faceCoords: { frozen: "+X", row: "Y", col: "Z" },
+	},
+	BACK: {
+		initialColor: "GREEN",
+		rowColTopLeft: [1,-1], // guess
+		faceCoords: { frozen: "-X", row: "Y", col: "Z" },
+	},
+	RIGHT: {
+		initialColor: "RED",
+		rowColTopLeft: [1,1],
+		faceCoords: { frozen: "+Y", row: "X", col: "Z" },
+	},
+	LEFT: {
+		initialColor: "ORANGE",
+		rowColTopLeft: [1,-1],
+		faceCoords: { frozen: "-Y", row: "X", col: "Z" },
+	},
+	TOP: {
+		initialColor: "YELLOW",
+		rowColTopLeft: [-1,-1],
+		faceCoords: { frozen: "+Z", row: "Y", col: "X" },
+	},
+	BOTTOM: {
+		initialColor: "WHITE",
+		rowColTopLeft: [1,-1],
+		faceCoords: { frozen: "-Z", row: "Y", col: "X" },
+	},
 };
+
 const axes = { x: "X", y: "Y", z: "Z" };
 
 const rotationDirs = { cw: -90, ccw: +90 };
+
+// used to distinguish top, meat, bottom layers on each face. Assuming rendered for viewing at front face.
+const rowTopLeft = {
+	// may not be correct yet
+	FRONT: 1,
+	BACK: 1,
+	RIGHT: 1,
+	LEFT: 1,
+	TOP: -1,
+	BOTTOM: 1,
+};
 
 const pieceFilter = {
 	posX: "POSX",
@@ -26,26 +61,6 @@ const pieceFilter = {
 	posZ: "POSZ",
 	negZ: "NEGZ",
 };
-
-// each face is either +/-1 in one of three dimensions
-// const faceCoords = {
-// 	FRONT: (1, 0, 0),
-// 	BACK: (-1, 0, 0),
-// 	RIGHT: (0, 1, 0),
-// 	LEFT: (0, -1, 0),
-// 	TOP: (0, 0, 1),
-// 	BOTTOM: (0, 0, -1),
-// };
-// used during initalization. Not sure if row & col need +/- differentiation
-const faceCoords = {
-	FRONT: { frozen: "+X", row: "Y", col: "Z" },
-	BACK: { frozen: "-X", row: "Y", col: "Z" },
-	RIGHT: { frozen: "+Y", row: "X", col: "Z" },
-	LEFT: { frozen: "-Y", row: "X", col: "Z" },
-	TOP: { frozen: "+Z", row: "Y", col: "X" },
-	BOTTOM: { frozen: "-Z", row: "Y", col: "X" },
-};
-// const newCubeSaveState =
 
 class Cube extends React.Component {
 	constructor(props) {
@@ -72,58 +87,57 @@ class Cube extends React.Component {
 	async loadInitialState() {
 		let newCube = {};
 		for (const faceName of faceNames) {
-			let newFace = {};
-			newFace.faceName = faceName;
+			let newFace = Object.assign(faceCharacteristics[faceName]);
+			if (newFace === undefined)
+				throw new Error("face is undefined!: " + faceName);
+			newFace.faceName = faceName; // redundant?
 
-			const color = initialFaceColors[faceName];
-			if (faceCoords[faceName] == undefined)
-				throw new Error("faceName is undefined");
+			newFace["grid"] = {};
 
 			// write data to each face
 			for (let row = -1; row < 2; row++) {
-				newFace[row] = {};
+				newFace["grid"][row] = {};
 				for (let col = -1; col < 2; col++) {
 					const newPiece = this.createPiece(
-						faceName,
+						newFace,
 						row,
 						col,
-						color
+						newFace.initialColor
 					);
-					newFace[row][col] = newPiece;
+					newFace["grid"][row][col] = newPiece;
 				}
 			}
 			newCube[faceName] = newFace;
 		}
-
 		await this.setState({ cube: newCube });
-		// console.log("this.state.cube:");
-		// console.log(this.state.cube);
+		console.log("this.state.cube");
+		console.log(this.state.cube);
 	}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
-	createPiece(faceName, row, col, color) {
-		const frozenCoord = faceCoords[faceName].frozen;
-		const rowCoord = faceCoords[faceName].row;
-		const colCoord = faceCoords[faceName].col;
+	createPiece(newFace, row, col, color) {
+		const frozenCoord = newFace.faceCoords.frozen;
+		const rowCoord = newFace.faceCoords.row;
+		const colCoord = newFace.faceCoords.col;
 		let coordinates = {};
 		switch (frozenCoord) {
-			case "+X":
+			case "+X": // front
 				coordinates = { x: 1.5, y: col, z: row }; // coord system may not be correct TODO: fix
 				break;
-			case "-X":
+			case "-X": // back
 				coordinates = { x: -1.5, y: col, z: row };
 				break;
-			case "+Y":
-				coordinates = { x: row, y: 1.5, z: col };
+			case "+Y": // right
+				coordinates = { x: col, y: 1.5, z: row };
 				break;
-			case "-Y":
-				coordinates = { x: row, y: -1.5, z: col };
+			case "-Y": // left
+				coordinates = { x: col, y: -1.5, z: row };
 				break;
-			case "+Z":
-				coordinates = { x: col, y: row, z: 1.5 };
+			case "+Z": //top
+				coordinates = { x: row, y: col, z: 1.5 };
 				break;
-			case "-Z":
-				coordinates = { x: col, y: row, z: -1.5 };
+			case "-Z": // bottom
+				coordinates = { x: row, y: col, z: -1.5 };
 				break;
 
 			default:
@@ -423,8 +437,8 @@ class Cube extends React.Component {
 			);
 			renderableFaces[faceName] = renderableFace;
 		}
-		// console.log("renderableFaces:");
-		// console.log(renderableFaces);
+		console.log("renderableFaces:");
+		console.log(renderableFaces);
 
 		return (
 			<>
@@ -449,6 +463,7 @@ class Cube extends React.Component {
 						<Grid item xs="3"></Grid>
 						{renderableFaces["RIGHT"]}
 						<Grid item xs="3"></Grid>
+						{renderableFaces["BACK"]}
 					</Grid>
 				</Grid>
 			</>
