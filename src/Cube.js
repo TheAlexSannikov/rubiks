@@ -2,6 +2,7 @@ import React from "react";
 import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
+import NextMoveBox from "./NextMoveBox";
 import { pi, rotate } from "mathjs";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
@@ -72,6 +73,8 @@ class Cube extends React.Component {
 		this.rotateFrontCCW = this.rotateFrontCCW.bind(this);
 		this.getTopControls = this.getTopControls.bind(this);
 		this.getBottomControls = this.getBottomControls.bind(this);
+
+		this.makeMove = this.makeMove.bind(this);
 	}
 
 	componentDidMount() {
@@ -138,6 +141,26 @@ class Cube extends React.Component {
 		const piece = { color: color, coordinates: coordinates };
 		cubeMap.set(JSON.stringify(coordinates), piece);
 		return piece;
+	}
+
+	// accepts a string as input. ie "F", "F'", "F²"
+	makeMove(moveString) {
+		switch (moveString) {
+			case "F":
+				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
+				break;
+			case "F'":
+				this.rotateHelper(pieceFilter.posX, axes.x, 0.5);
+				break;
+			case "F²":
+				this.rotateHelper(pieceFilter.posX, axes.x, 1);
+				break;
+
+		
+			default:
+				throw new Error("move string is illegal: " + moveString);
+
+		}
 	}
 
 	// use rotation matrix
@@ -250,7 +273,7 @@ class Cube extends React.Component {
 		console.log("matchingPieces after");
 		console.log(matchingPieces);
 
-		this.setState({forceRender: 1})
+		this.setState({ forceRender: 1 });
 
 		console.log("this.state.cube after");
 		console.log(this.state.cube);
@@ -387,27 +410,8 @@ class Cube extends React.Component {
 					</label>
 				</div>
 
-				<div className="controls controls-bottom">
-					<label>
-						{" "}
-						make top black
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={this.makeTopBlack}
-						/>
-					</label>
-				</div>
-				<form>
-					<label for="fname">Save as:</label>
-					<input type="text" id="saveAs" name="saveField"></input>
-				</form>
-				<button>save</button>
-				<form>
-					<label for="fname">load save:</label>
-					<input type="text" id="loadSave" name="load"></input>
-				</form>
-				<button>save</button>
+				<NextMoveBox makeMove={this.makeMove}></NextMoveBox>
+
 				<div className="controls controls-bottom">
 					<label>
 						{" "}
