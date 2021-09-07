@@ -135,7 +135,7 @@ class Cube extends React.Component {
 				throw new Error("frozenCoord does not have a valid case!");
 		}
 		const piece = { color: color, coordinates: coordinates };
-		cubeMap.set(coordinates, piece);
+		cubeMap.set(JSON.stringify(coordinates), piece);
 		return piece;
 	}
 
@@ -200,12 +200,24 @@ class Cube extends React.Component {
 		}
 		// matchignPieces is directly mapped to cube. matchingPiecesBeforeRotation has their colors before the rotation.
 		let matchingPieces = this.filterPieces(filter);
-		const matchingPiecesBeforeRotation = new Map(matchingPieces);
+
+		// shallow copy matchingPieces
+		let matchingPiecesBeforeRotation = new Map();
+
+		for (const pieceMap of matchingPieces) {
+			matchingPiecesBeforeRotation.set(
+				pieceMap[0],
+				JSON.parse(JSON.stringify(pieceMap[1]))
+			);
+		}
+
+		console.log("matchingPiecesBeforeRotation");
+		console.log(matchingPiecesBeforeRotation);
 
 		// console.log("this.state.cube before");
 		// console.log(this.state.cube);
-		// console.log("matchingPieces before");
-		// console.log(matchingPieces);
+		console.log("matchingPieces before");
+		console.log(matchingPieces);
 
 		// calculate new coordinates for each piece - ie which piece will be recolored
 		for (const pieceMap of matchingPiecesBeforeRotation) {
@@ -220,23 +232,20 @@ class Cube extends React.Component {
 				newPieceMatrix[i] = Math.round(newPieceMatrix[i]);
 
 			// update color
-			console.log("matchingPieces");
-			console.log(matchingPieces);
-			console.log(newPieceMatrix, pieceMap[1].color);
-
-			if (!matchingPieces.has(newPieceMatrix)) {
+			if (!matchingPieces.has(JSON.stringify(newPieceMatrix))) {
 				console.log(newPieceMatrix);
 				throw new Error(
 					"calculated coordinates are not in matchingPieces!"
 				);
 			}
 
-			let pieceToBeUpdated = matchingPieces.get(newPieceMatrix);
-			console.log(pieceToBeUpdated);
+			let pieceToBeUpdated = matchingPieces.get(
+				JSON.stringify(newPieceMatrix)
+			);
 			pieceToBeUpdated.color = pieceMap[1].color;
 
-			matchingPieces.set(newPieceMatrix, {
-				coordinates: newPieceMatrix,
+			matchingPieces.set(JSON.stringify(newPieceMatrix), {
+				// coordinates: newPieceMatrix, // should be the same
 				color: pieceMap[1].color,
 			});
 		}
@@ -249,20 +258,19 @@ class Cube extends React.Component {
 
 	// returns an array of pieces that satisfy the filter
 	filterPieces(filter) {
-		// let matchingPieces = [];
-		// filter out pieces that match the filter. Look through each face.
-		// TODO: may rework for efficient
-
 		const matchingPieces = new Map();
-
+		console.log("filter: cubeMap");
+		console.log(cubeMap);
 		[...cubeMap].filter(([k, v]) => {
 			for (let i = 0; i < 3; i++) {
-				if (!(k[i] >= filter.min[i] && k[i] <= filter.max[i])) return;
+				const keyObj = JSON.parse(k);
+				if (!(keyObj[i] >= filter.min[i] && keyObj[i] <= filter.max[i]))
+					return;
 			}
 			matchingPieces.set(k, v);
 		});
 
-		console.log("matchingPieces");
+		console.log("filter: matchingPieces");
 		console.log(matchingPieces);
 		return matchingPieces;
 	}
@@ -279,12 +287,12 @@ class Cube extends React.Component {
 
 	lookToTopFace() {
 		console.log("looking to top face");
-		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
+		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
 	}
 
 	lookToBottomFace() {
 		console.log("looking to bottom face");
-		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
+		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
 	}
 
 	rotateFrontCW(cube, directlyUpdateCube) {
@@ -334,21 +342,14 @@ class Cube extends React.Component {
 		}
 	}
 
+	rotateFrontCCW() {
+		console.log("rotate front CCW");
+		this.rotateHelper(pieceFilter.posX, axes.x, 0.5);
+	}
+
 	rotateFront180Deg(cube) {
 		console.log("rotate front 180 degrees");
 		this.rotateHelper(pieceFilter.posX, axes.x, 1);
-	}
-
-	rotateFrontCCW(cube, directlyUpdateCube) {
-		console.log("in cube.js. Rotate front CCW");
-		let newCube = this.rotateFront180Deg(cube);
-		newCube = this.rotateFrontCW(newCube);
-		if (directlyUpdateCube) {
-			console.log(newCube);
-			this.setState({ faces: newCube });
-		} else {
-			return newCube;
-		}
 	}
 
 	getTopControls() {
@@ -411,6 +412,21 @@ class Cube extends React.Component {
 									faces: this.rotateFront180Deg(
 										this.state.cube
 									),
+								});
+							}}
+						/>
+					</label>
+				</div>
+				<div className="controls controls-bottom">
+					<label>
+						{" "}
+						rotate front CCW
+						<input
+							type="checkbox"
+							className="checkbox"
+							onChange={() => {
+								this.setState({
+									faces: this.rotateFrontCCW(),
 								});
 							}}
 						/>
