@@ -36,7 +36,7 @@ body {
 .cubepiece {
   display: flex;
   justify-content: center;
-  min-width: 11vw;
+  width: 11vw;
 }
 
 .cubeRow {

@@ -1,3 +1,5 @@
 https://en.wikipedia.org/wiki/Spherical_coordinate_system#/media/File:3D_Spherical.svg
 
 https://mathworld.wolfram.com/RotationMatrix.html
+
+https://mathjs.org/docs/reference/functions/rotationMatrix.html

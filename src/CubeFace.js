@@ -13,8 +13,6 @@ class CubeFace extends React.Component {
 
 	getFace() {
 		if (this.props.face === undefined) return;
-		console.log("this.props.face");
-		console.log(this.props.face);
 		const topIndex = (this.props.face.rowColTopLeft[0] == 1) ? 1 : -1;
 		const bottomIndex = (this.props.face.rowColTopLeft[0] == 1) ? -1 : 1;
 		return (
@@ -27,7 +25,6 @@ class CubeFace extends React.Component {
 	}
 
 	render() {
-		console.log("getting face");
 		return <>{this.getFace()}</>;
 	}
 }

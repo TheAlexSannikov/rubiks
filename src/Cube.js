@@ -2,38 +2,39 @@ import React from "react";
 import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
+import { pi, rotate } from "mathjs";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
 
 const faceCharacteristics = {
 	FRONT: {
 		initialColor: "BLUE",
-		rowColTopLeft: [1,-1],
+		rowColTopLeft: [1, -1],
 		faceCoords: { frozen: "+X", row: "Y", col: "Z" },
 	},
 	BACK: {
 		initialColor: "GREEN",
-		rowColTopLeft: [1,-1], // guess
+		rowColTopLeft: [1, -1], // guess
 		faceCoords: { frozen: "-X", row: "Y", col: "Z" },
 	},
 	RIGHT: {
 		initialColor: "RED",
-		rowColTopLeft: [1,1],
+		rowColTopLeft: [1, 1],
 		faceCoords: { frozen: "+Y", row: "X", col: "Z" },
 	},
 	LEFT: {
 		initialColor: "ORANGE",
-		rowColTopLeft: [1,-1],
+		rowColTopLeft: [1, -1],
 		faceCoords: { frozen: "-Y", row: "X", col: "Z" },
 	},
 	TOP: {
 		initialColor: "YELLOW",
-		rowColTopLeft: [-1,-1],
+		rowColTopLeft: [-1, -1],
 		faceCoords: { frozen: "+Z", row: "Y", col: "X" },
 	},
 	BOTTOM: {
 		initialColor: "WHITE",
-		rowColTopLeft: [1,-1],
+		rowColTopLeft: [1, -1],
 		faceCoords: { frozen: "-Z", row: "Y", col: "X" },
 	},
 };
@@ -42,25 +43,18 @@ const axes = { x: "X", y: "Y", z: "Z" };
 
 const rotationDirs = { cw: -90, ccw: +90 };
 
-// used to distinguish top, meat, bottom layers on each face. Assuming rendered for viewing at front face.
-const rowTopLeft = {
-	// may not be correct yet
-	FRONT: 1,
-	BACK: 1,
-	RIGHT: 1,
-	LEFT: 1,
-	TOP: -1,
-	BOTTOM: 1,
+const pieceFilter = {
+	all: { min: [-2, -2, -2], max: [2, 2, 2] },
+	posX: { min: [1, -2, -2], max: [2, 2, 2] },
+	negX: { min: [-2, -2, -2], max: [-1, 2, 2] },
+	posY: { min: [-2, 1, -2], max: [2, 2, 2] },
+	negY: { min: [-2, -2, -2], max: [2, -1, 2] },
+	posZ: { min: [-2, -2, 1], max: [2, 2, 2] },
+	negZ: { min: [-2, -2, -2], max: [2, 2, -1] },
 };
 
-const pieceFilter = {
-	posX: "POSX",
-	negX: "NEGX",
-	posY: "POSY",
-	negY: "NEGY",
-	posZ: "POSZ",
-	negZ: "NEGZ",
-};
+// a better way to iterate through pieces
+const cubeMap = new Map();
 
 class Cube extends React.Component {
 	constructor(props) {
@@ -75,7 +69,6 @@ class Cube extends React.Component {
 		this.rotateFrontCW = this.rotateFrontCW.bind(this);
 		this.rotateFront180Deg = this.rotateFront180Deg.bind(this);
 		this.rotateFrontCCW = this.rotateFrontCCW.bind(this);
-		this.makeTopBlack = this.makeTopBlack.bind(this); //debug purposes
 		this.getTopControls = this.getTopControls.bind(this);
 		this.getBottomControls = this.getBottomControls.bind(this);
 	}
@@ -110,8 +103,6 @@ class Cube extends React.Component {
 			newCube[faceName] = newFace;
 		}
 		await this.setState({ cube: newCube });
-		console.log("this.state.cube");
-		console.log(this.state.cube);
 	}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
@@ -119,31 +110,33 @@ class Cube extends React.Component {
 		const frozenCoord = newFace.faceCoords.frozen;
 		const rowCoord = newFace.faceCoords.row;
 		const colCoord = newFace.faceCoords.col;
-		let coordinates = {};
+		let coordinates = [];
 		switch (frozenCoord) {
 			case "+X": // front
-				coordinates = { x: 1.5, y: col, z: row }; // coord system may not be correct TODO: fix
+				coordinates = [2, col, row];
 				break;
 			case "-X": // back
-				coordinates = { x: -1.5, y: col, z: row };
+				coordinates = [-2, col, row]; // coord system may not be correct TODO: fix
 				break;
 			case "+Y": // right
-				coordinates = { x: col, y: 1.5, z: row };
+				coordinates = [col, 2, row];
 				break;
 			case "-Y": // left
-				coordinates = { x: col, y: -1.5, z: row };
+				coordinates = [col, -2, row];
 				break;
 			case "+Z": //top
-				coordinates = { x: row, y: col, z: 1.5 };
+				coordinates = [row, col, 2];
 				break;
 			case "-Z": // bottom
-				coordinates = { x: row, y: col, z: -1.5 };
+				coordinates = [row, col, -2];
 				break;
 
 			default:
 				throw new Error("frozenCoord does not have a valid case!");
 		}
-		return { color: color, coordinates: coordinates };
+		const piece = { color: color, coordinates: coordinates };
+		cubeMap.set(coordinates, piece);
+		return piece;
 	}
 
 	// use rotation matrix
@@ -162,10 +155,10 @@ class Cube extends React.Component {
 
 		switch (faceOfRotation) {
 			case "FRONT":
-				this.rotateHelper(pieceFilter.posX, axes.X, dir);
+				this.rotateHelper(pieceFilter.posX, axes.x, dir);
 				break;
 			case "BACK":
-				this.rotateHelper(pieceFilter.negX, axes.X, dir); // mirror this?
+				this.rotateHelper(pieceFilter.negX, axes.x, dir); // mirror this?
 				break;
 
 			default:
@@ -173,81 +166,125 @@ class Cube extends React.Component {
 		}
 	}
 
-	//performs actual rotation, updating this.state.cube
-	rotateHelper(filter, axis, degrees) {
-		// filter out pieces that match the filter. Look through each face.
-		for (const face in this.state.cube) {
-			console.log(face);
+	// rotates all faces matching the filter along the specified axis by specified degrees. Updates this.state.cube
+	rotateHelper(filter, axisOfRotation, piRadians) {
+		console.log(
+			"in rotate helper. args: " +
+				filter +
+				" " +
+				axisOfRotation +
+				" " +
+				piRadians
+		);
+
+		// setup rotation
+		// TODO: hardcode common values to avoid rounding?
+		const cos = Math.cos(Math.PI * piRadians);
+		const sin = Math.sin(Math.PI * piRadians);
+		let rotationMatrix = [];
+
+		switch (axisOfRotation) {
+			case axes.x:
+				rotationMatrix = [1, 0, 0];
+				break;
+			case axes.y:
+				rotationMatrix = [0, 1, 0];
+				break;
+			case axes.z:
+				rotationMatrix = [0, 0, 1];
+				break;
+			default:
+				throw new Error(
+					"axisOfRotation is not valid: " + axisOfRotation
+				);
 		}
+		// matchignPieces is directly mapped to cube. matchingPiecesBeforeRotation has their colors before the rotation.
+		let matchingPieces = this.filterPieces(filter);
+		const matchingPiecesBeforeRotation = new Map(matchingPieces);
+
+		// console.log("this.state.cube before");
+		// console.log(this.state.cube);
+		// console.log("matchingPieces before");
+		// console.log(matchingPieces);
+
+		// calculate new coordinates for each piece - ie which piece will be recolored
+		for (const pieceMap of matchingPiecesBeforeRotation) {
+			let newPieceMatrix = rotate(
+				pieceMap[1].coordinates,
+				Math.PI * piRadians,
+				rotationMatrix
+			);
+
+			// round the coordinates
+			for (let i = 0; i < 3; i++)
+				newPieceMatrix[i] = Math.round(newPieceMatrix[i]);
+
+			// update color
+			console.log("matchingPieces");
+			console.log(matchingPieces);
+			console.log(newPieceMatrix, pieceMap[1].color);
+
+			if (!matchingPieces.has(newPieceMatrix)) {
+				console.log(newPieceMatrix);
+				throw new Error(
+					"calculated coordinates are not in matchingPieces!"
+				);
+			}
+
+			let pieceToBeUpdated = matchingPieces.get(newPieceMatrix);
+			console.log(pieceToBeUpdated);
+			pieceToBeUpdated.color = pieceMap[1].color;
+
+			matchingPieces.set(newPieceMatrix, {
+				coordinates: newPieceMatrix,
+				color: pieceMap[1].color,
+			});
+		}
+		console.log("matchingPieces after");
+		console.log(matchingPieces);
+
+		// console.log("this.state.cube after");
+		// console.log(this.state.cube);
 	}
 
-	// rotates all faces matching the filter along the specified axis by specified degrees
-	rotateHelper(filter, axisOfRotation, degrees) {}
+	// returns an array of pieces that satisfy the filter
+	filterPieces(filter) {
+		// let matchingPieces = [];
+		// filter out pieces that match the filter. Look through each face.
+		// TODO: may rework for efficient
+
+		const matchingPieces = new Map();
+
+		[...cubeMap].filter(([k, v]) => {
+			for (let i = 0; i < 3; i++) {
+				if (!(k[i] >= filter.min[i] && k[i] <= filter.max[i])) return;
+			}
+			matchingPieces.set(k, v);
+		});
+
+		console.log("matchingPieces");
+		console.log(matchingPieces);
+		return matchingPieces;
+	}
 
 	lookToRightFace() {
-		const faces = this.state.cube;
-		let newFaces = {};
-		newFaces["FRONT"] = faces["RIGHT"];
-		newFaces["RIGHT"] = faces["BACK"];
-		newFaces["BACK"] = faces["LEFT"];
-		newFaces["LEFT"] = faces["FRONT"];
-
-		newFaces["TOP"] = this.rotateFace(faces["TOP"], "cw");
-		newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], "ccw");
-		this.setState({ faces: newFaces });
-		// console.log(this.state.cube);
+		console.log("looking to right face");
+		this.rotateHelper(pieceFilter.all, axes.z, -0.5);
 	}
 
 	lookToLeftFace() {
-		const faces = this.state.cube;
-		let newFaces = {};
-		newFaces["FRONT"] = faces["LEFT"];
-		newFaces["LEFT"] = faces["BACK"];
-		newFaces["BACK"] = faces["RIGHT"];
-		newFaces["RIGHT"] = faces["FRONT"];
-		newFaces["TOP"] = this.rotateFace(faces["TOP"], "ccw");
-		newFaces["BOTTOM"] = this.rotateFace(faces["BOTTOM"], "cw");
-		this.setState({ faces: newFaces });
-		// console.log(this.state.cube);
+		console.log("looking to left face");
+		this.rotateHelper(pieceFilter.all, axes.z, +0.5);
 	}
 
 	lookToTopFace() {
-		const faces = this.state.cube;
-		let newFaces = {};
-		newFaces["FRONT"] = faces["TOP"];
-		newFaces["TOP"] = this.rotateFace(
-			this.rotateFace(faces["BACK"], "cw"),
-			"cw"
-		); //fix issue?
-		newFaces["BACK"] = this.rotateFace(
-			this.rotateFace(faces["BOTTOM"], "cw"),
-			"cw"
-		); //fix issue?;
-		newFaces["BOTTOM"] = faces["FRONT"];
-
-		newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "cw");
-		newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "ccw");
-		this.setState({ faces: newFaces });
-		// console.log(this.state.cube);
+		console.log("looking to top face");
+		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
 	}
 
 	lookToBottomFace() {
-		const faces = this.state.cube;
-		let newFaces = {};
-		newFaces["FRONT"] = faces["BOTTOM"];
-		newFaces["BOTTOM"] = this.rotateFace(
-			this.rotateFace(faces["BACK"], "cw"),
-			"cw"
-		); //fix issue?
-		newFaces["BACK"] = this.rotateFace(
-			this.rotateFace(faces["TOP"], "cw"),
-			"cw"
-		); //fix issue?
-		newFaces["TOP"] = faces["FRONT"];
-		newFaces["LEFT"] = this.rotateFace(faces["LEFT"], "ccw");
-		newFaces["RIGHT"] = this.rotateFace(faces["RIGHT"], "cw");
-		this.setState({ faces: newFaces });
-		// console.log(this.state.cube);
+		console.log("looking to bottom face");
+		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
 	}
 
 	rotateFrontCW(cube, directlyUpdateCube) {
@@ -298,8 +335,8 @@ class Cube extends React.Component {
 	}
 
 	rotateFront180Deg(cube) {
-		let newCube = this.rotateFrontCW(cube);
-		return this.rotateFrontCW(newCube);
+		console.log("rotate front 180 degrees");
+		this.rotateHelper(pieceFilter.posX, axes.x, 1);
 	}
 
 	rotateFrontCCW(cube, directlyUpdateCube) {
@@ -312,26 +349,6 @@ class Cube extends React.Component {
 		} else {
 			return newCube;
 		}
-	}
-
-	makeTopBlack() {
-		let newFaces = JSON.parse(JSON.stringify(this.state.cube));
-		let face = this.state.cube["FRONT"];
-		if (
-			face === undefined ||
-			face[0] === undefined ||
-			face[0][0] === undefined
-		) {
-			console.log("could not set top black");
-			return;
-		}
-		for (let i = 0; i < 3; i++) {
-			for (let j = 0; j < 3; j++) {
-				face[i][j] = "BLACK";
-			}
-		}
-		newFaces["TOP"] = face;
-		this.setState({ faces: newFaces });
 	}
 
 	getTopControls() {
@@ -425,7 +442,8 @@ class Cube extends React.Component {
 		);
 	}
 
-	render() {
+	// gets cube. In grid, etc.
+	getRenderableCube() {
 		let renderableFaces = {};
 		for (const faceName of faceNames) {
 			const renderableFace = (
@@ -437,8 +455,6 @@ class Cube extends React.Component {
 			);
 			renderableFaces[faceName] = renderableFace;
 		}
-		console.log("renderableFaces:");
-		console.log(renderableFaces);
 
 		return (
 			<>
@@ -463,9 +479,22 @@ class Cube extends React.Component {
 						<Grid item xs="3"></Grid>
 						{renderableFaces["RIGHT"]}
 						<Grid item xs="3"></Grid>
-						{renderableFaces["BACK"]}
+						{/* {renderableFaces["BACK"]} */}
 					</Grid>
 				</Grid>
+			</>
+		);
+	}
+
+	render() {
+		const topControls = this.getTopControls();
+		const bottomControls = this.getBottomControls();
+		const renderableCube = this.getRenderableCube();
+		return (
+			<>
+				{topControls}
+				{renderableCube}
+				{bottomControls}
 			</>
 		);
 	}
