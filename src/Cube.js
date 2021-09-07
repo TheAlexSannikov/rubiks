@@ -61,6 +61,7 @@ class Cube extends React.Component {
 		super(props);
 		this.state = {
 			cube: {},
+			forceRender: 0,
 		};
 		this.lookToRightFace = this.lookToRightFace.bind(this);
 		this.lookToLeftFace = this.lookToLeftFace.bind(this);
@@ -211,9 +212,6 @@ class Cube extends React.Component {
 			);
 		}
 
-		console.log("matchingPiecesBeforeRotation");
-		console.log(matchingPiecesBeforeRotation);
-
 		// console.log("this.state.cube before");
 		// console.log(this.state.cube);
 		console.log("matchingPieces before");
@@ -252,15 +250,15 @@ class Cube extends React.Component {
 		console.log("matchingPieces after");
 		console.log(matchingPieces);
 
-		// console.log("this.state.cube after");
-		// console.log(this.state.cube);
+		this.setState({forceRender: 1})
+
+		console.log("this.state.cube after");
+		console.log(this.state.cube);
 	}
 
 	// returns an array of pieces that satisfy the filter
 	filterPieces(filter) {
 		const matchingPieces = new Map();
-		console.log("filter: cubeMap");
-		console.log(cubeMap);
 		[...cubeMap].filter(([k, v]) => {
 			for (let i = 0; i < 3; i++) {
 				const keyObj = JSON.parse(k);
@@ -270,8 +268,6 @@ class Cube extends React.Component {
 			matchingPieces.set(k, v);
 		});
 
-		console.log("filter: matchingPieces");
-		console.log(matchingPieces);
 		return matchingPieces;
 	}
 
@@ -295,51 +291,9 @@ class Cube extends React.Component {
 		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
 	}
 
-	rotateFrontCW(cube, directlyUpdateCube) {
-		if (cube === undefined || cube["FRONT"] === undefined) {
-			if (this.state.cube !== undefined) {
-				cube = this.state.cube;
-			} else {
-				return;
-			}
-		}
-
-		let newCube = {};
-
-		let leftFace = JSON.parse(JSON.stringify(cube["LEFT"]));
-		let topFace = JSON.parse(JSON.stringify(cube["TOP"]));
-		let rightFace = JSON.parse(JSON.stringify(cube["RIGHT"]));
-		let bottomFace = JSON.parse(JSON.stringify(cube["BOTTOM"]));
-
-		//lazy algorithm
-		leftFace[0][2] = cube["BOTTOM"][0][0];
-		leftFace[1][2] = cube["BOTTOM"][0][1];
-		leftFace[2][2] = cube["BOTTOM"][0][2];
-
-		topFace[2][0] = cube["LEFT"][2][2];
-		topFace[2][1] = cube["LEFT"][1][2];
-		topFace[2][2] = cube["LEFT"][0][2];
-
-		rightFace[0][0] = cube["TOP"][2][0];
-		rightFace[1][0] = cube["TOP"][2][1];
-		rightFace[2][0] = cube["TOP"][2][2];
-
-		bottomFace[0][0] = cube["RIGHT"][2][0];
-		bottomFace[0][1] = cube["RIGHT"][1][0];
-		bottomFace[0][2] = cube["RIGHT"][0][0];
-
-		newCube["FRONT"] = this.rotateFace(cube["FRONT"], "cw");
-		newCube["BACK"] = cube["BACK"];
-		newCube["LEFT"] = leftFace;
-		newCube["TOP"] = topFace;
-		newCube["RIGHT"] = rightFace;
-		newCube["BOTTOM"] = bottomFace;
-
-		if (directlyUpdateCube) {
-			this.setState({ faces: newCube });
-		} else {
-			return newCube;
-		}
+	rotateFrontCW() {
+		console.log("rotate front CW");
+		this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
 	}
 
 	rotateFrontCCW() {
@@ -454,6 +408,19 @@ class Cube extends React.Component {
 					<input type="text" id="loadSave" name="load"></input>
 				</form>
 				<button>save</button>
+				<div className="controls controls-bottom">
+					<label>
+						{" "}
+						reset
+						<input
+							type="checkbox"
+							className="checkbox"
+							onChange={() => {
+								this.loadInitialState();
+							}}
+						/>
+					</label>
+				</div>
 			</>
 		);
 	}
