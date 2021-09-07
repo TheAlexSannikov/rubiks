@@ -15,6 +15,7 @@ class NextMoveBox extends React.Component {
 	}
 
 	handleSubmit(event) {
+		// alert("Your move is: " + this.state.value);
 		this.props.makeMove(this.state.value);
 		event.preventDefault();
 	}
@@ -52,6 +53,17 @@ class NextMoveBox extends React.Component {
 						<option value="R'">R'</option>
 						<option value="R²">R²</option>
 						
+						<option value="x">x</option>
+						<option value="x'">x'</option>
+						<option value="x²">x²</option>
+			
+						<option value="y">y</option>
+						<option value="y'">y'</option>
+						<option value="y²">y²</option>
+
+						<option value ="z">z</option>
+						<option value ="z'">z'</option>
+						<option value ="z²">z²</option>
 
 					</select>
 				</label>

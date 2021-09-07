@@ -3,3 +3,5 @@ https://en.wikipedia.org/wiki/Spherical_coordinate_system#/media/File:3D_Spheric
 https://mathworld.wolfram.com/RotationMatrix.html
 
 https://mathjs.org/docs/reference/functions/rotationMatrix.html
+
+https://solvethecube.com/notation

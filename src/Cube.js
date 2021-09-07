@@ -3,46 +3,45 @@ import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
 import NextMoveBox from "./NextMoveBox";
-import { pi, rotate } from "mathjs";
+import { rotate } from "mathjs";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
 
+// rowCol may not strictly be row/column, but the cube comes together...
 const faceCharacteristics = {
 	FRONT: {
 		initialColor: "BLUE",
-		rowColTopLeft: [1, -1],
-		faceCoords: { frozen: "+X", row: "Y", col: "Z" },
+		rowColTopLeft: [1, 1],
+		faceCoords: { frozen: "+X"},
 	},
 	BACK: {
 		initialColor: "GREEN",
-		rowColTopLeft: [1, -1], // guess
-		faceCoords: { frozen: "-X", row: "Y", col: "Z" },
+		rowColTopLeft: [-1, -1], // guess
+		faceCoords: { frozen: "-X"},
 	},
 	RIGHT: {
 		initialColor: "RED",
 		rowColTopLeft: [1, 1],
-		faceCoords: { frozen: "+Y", row: "X", col: "Z" },
+		faceCoords: { frozen: "-Z"},
 	},
 	LEFT: {
 		initialColor: "ORANGE",
 		rowColTopLeft: [1, -1],
-		faceCoords: { frozen: "-Y", row: "X", col: "Z" },
+		faceCoords: { frozen: "+Z" },
 	},
 	TOP: {
 		initialColor: "YELLOW",
-		rowColTopLeft: [-1, -1],
-		faceCoords: { frozen: "+Z", row: "Y", col: "X" },
+		rowColTopLeft: [-1, 1],
+		faceCoords: { frozen: "+Y" },
 	},
 	BOTTOM: {
 		initialColor: "WHITE",
-		rowColTopLeft: [1, -1],
-		faceCoords: { frozen: "-Z", row: "Y", col: "X" },
+		rowColTopLeft: [1, 1],
+		faceCoords: { frozen: "-Y" },
 	},
 };
 
 const axes = { x: "X", y: "Y", z: "Z" };
-
-const rotationDirs = { cw: -90, ccw: +90 };
 
 const pieceFilter = {
 	all: { min: [-2, -2, -2], max: [2, 2, 2] },
@@ -117,22 +116,22 @@ class Cube extends React.Component {
 		let coordinates = [];
 		switch (frozenCoord) {
 			case "+X": // front
-				coordinates = [2, col, row];
+				coordinates = [2, row, col];
 				break;
 			case "-X": // back
-				coordinates = [-2, col, row]; // coord system may not be correct TODO: fix
+				coordinates = [-2, row, col]; // coord system may not be correct TODO: fix
 				break;
-			case "+Y": // right
-				coordinates = [col, 2, row];
+			case "-Z": // right
+				coordinates = [col, row, -2];
 				break;
-			case "-Y": // left
-				coordinates = [col, -2, row];
+			case "+Z": // left
+				coordinates = [col, row, 2];
 				break;
-			case "+Z": //top
-				coordinates = [row, col, 2];
+			case "+Y": //top
+				coordinates = [row, 2, col];
 				break;
-			case "-Z": // bottom
-				coordinates = [row, col, -2];
+			case "-Y": // bottom
+				coordinates = [row, -2, col];
 				break;
 
 			default:
@@ -143,25 +142,7 @@ class Cube extends React.Component {
 		return piece;
 	}
 
-	// accepts a string as input. ie "F", "F'", "F²"
-	makeMove(moveString) {
-		switch (moveString) {
-			case "F":
-				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
-				break;
-			case "F'":
-				this.rotateHelper(pieceFilter.posX, axes.x, 0.5);
-				break;
-			case "F²":
-				this.rotateHelper(pieceFilter.posX, axes.x, 1);
-				break;
-
-		
-			default:
-				throw new Error("move string is illegal: " + moveString);
-
-		}
-	}
+	
 
 	// use rotation matrix
 	/**
@@ -202,9 +183,6 @@ class Cube extends React.Component {
 		);
 
 		// setup rotation
-		// TODO: hardcode common values to avoid rounding?
-		const cos = Math.cos(Math.PI * piRadians);
-		const sin = Math.sin(Math.PI * piRadians);
 		let rotationMatrix = [];
 
 		switch (axisOfRotation) {
@@ -281,6 +259,8 @@ class Cube extends React.Component {
 
 	// returns an array of pieces that satisfy the filter
 	filterPieces(filter) {
+		console.log("cubeMap");
+		console.log(cubeMap);
 		const matchingPieces = new Map();
 		[...cubeMap].filter(([k, v]) => {
 			for (let i = 0; i < 3; i++) {
@@ -290,28 +270,131 @@ class Cube extends React.Component {
 			}
 			matchingPieces.set(k, v);
 		});
-
+		console.log("within filter: filter: ");
+		console.log(filter);
+		console.log("matchingPieces");
+		console.log(matchingPieces);
 		return matchingPieces;
+	}
+
+	// accepts a string as input. ie "F", "F'", "F²"
+	makeMove(moveString) {
+		switch (moveString) {
+			case "F":
+				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
+				break;
+			case "F'":
+				this.rotateHelper(pieceFilter.posX, axes.x, +0.5);
+				break;
+			case "F²":
+				this.rotateHelper(pieceFilter.posX, axes.x, 1);
+				break;
+
+			case "B": 
+				this.rotateHelper(pieceFilter.negX, axes.x, +0.5);
+				break;
+			case "B'":
+				this.rotateHelper(pieceFilter.negX, axes.x, -0.5);
+				break;
+			case "B²":
+				this.rotateHelper(pieceFilter.negX, axes.x, 1);
+				break;
+
+			case "U": 
+				this.rotateHelper(pieceFilter.posY, axes.y, -0.5);
+				break;
+			case "U'":
+				this.rotateHelper(pieceFilter.posY, axes.y, 0.5);
+				break;
+			case "U²":
+				this.rotateHelper(pieceFilter.posY, axes.y, 1);
+				break;
+				
+			case "D": 
+				this.rotateHelper(pieceFilter.negY, axes.y, +0.5);
+				break;
+			case "D'":
+				this.rotateHelper(pieceFilter.negY, axes.y, -0.5);
+				break;
+			case "D²":
+				this.rotateHelper(pieceFilter.negY, axes.y, 1);
+				break;
+
+			case "L": 
+				this.rotateHelper(pieceFilter.posZ, axes.z, -0.5);
+				break;
+			case "L'":
+				this.rotateHelper(pieceFilter.posZ, axes.z, +0.5);
+				break;
+			case "L²":
+				this.rotateHelper(pieceFilter.posZ, axes.z, 1);
+				break;
+
+			case "R": 
+				this.rotateHelper(pieceFilter.negZ, axes.z, +0.5);
+				break;
+			case "R'":
+				this.rotateHelper(pieceFilter.negZ, axes.z, -0.5);
+				break;
+			case "R²":
+				this.rotateHelper(pieceFilter.negZ, axes.z, 1);
+				break;
+
+			// whole cube rotations. Unfortunantly, these do not correspond to the grid's coordinates.
+			case "x": // rotate the entire cube on R
+				this.rotateHelper(pieceFilter.all, axes.z, +0.5);
+				break;
+			case "x'":
+				this.rotateHelper(pieceFilter.all, axes.z, -0.5);
+				break;
+			case "x²":
+				this.rotateHelper(pieceFilter.all, axes.z, 1);
+				break;
+			
+			case "y": // rotate the entire cube on U
+				this.rotateHelper(pieceFilter.all, axes.y, -0.5);
+				break;
+			case "y'":
+				this.rotateHelper(pieceFilter.all, axes.y, +0.5);
+				break;
+			case "y²":
+				this.rotateHelper(pieceFilter.all, axes.y, 1);
+				break;
+			
+			case "z": // rotate the entire cube on F
+				this.rotateHelper(pieceFilter.all, axes.x, -0.5);
+				break;
+			case "z'":
+				this.rotateHelper(pieceFilter.all, axes.x, +0.5);
+				break;
+			case "z²":
+				this.rotateHelper(pieceFilter.all, axes.x, 1);
+				break;
+			
+
+			default:
+				throw new Error("move string is illegal: " + moveString);
+		}
 	}
 
 	lookToRightFace() {
 		console.log("looking to right face");
-		this.rotateHelper(pieceFilter.all, axes.z, -0.5);
+		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
 	}
 
 	lookToLeftFace() {
 		console.log("looking to left face");
-		this.rotateHelper(pieceFilter.all, axes.z, +0.5);
+		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
 	}
 
 	lookToTopFace() {
 		console.log("looking to top face");
-		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
+		this.rotateHelper(pieceFilter.all, axes.z, -0.5);
 	}
 
 	lookToBottomFace() {
 		console.log("looking to bottom face");
-		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
+		this.rotateHelper(pieceFilter.all, axes.z, +0.5);
 	}
 
 	rotateFrontCW() {
@@ -321,7 +404,7 @@ class Cube extends React.Component {
 
 	rotateFrontCCW() {
 		console.log("rotate front CCW");
-		this.rotateHelper(pieceFilter.posX, axes.x, 0.5);
+		this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
 	}
 
 	rotateFront180Deg(cube) {
