@@ -32,6 +32,8 @@ class NextMoveBox extends React.Component {
 						}
 					}}
 				>
+					<option value="~">~ reset</option>
+
 					<option value="F">F</option>
 					<option value="F'">F'</option>
 					<option value="F²">F²</option>

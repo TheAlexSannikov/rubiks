@@ -12,7 +12,7 @@ function CubeRow(props) {
 		piecesOfRow[colNum] = (
 			<Grid item xs={4}> 
 				<Paper
-					className={`cubepiece ${
+					className={`cube_piece ${
 						props.face.grid[props.row][colNum].color
 					}`}
 				>

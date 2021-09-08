@@ -76,6 +76,7 @@ class Cube extends React.Component {
 
 		this.makeMove = this.makeMove.bind(this);
 		this.loadState = this.loadState.bind(this);
+		this.getRenderableFaces = this.getRenderableFaces.bind(this);
 	}
 
 	componentDidMount() {
@@ -83,6 +84,7 @@ class Cube extends React.Component {
 	}
 
 	loadInitialState() {
+		console.log("loading initial state");
 		let newCube = {};
 		for (const faceName of faceNames) {
 			let newFace = Object.assign(faceCharacteristics[faceName]);
@@ -107,11 +109,13 @@ class Cube extends React.Component {
 			}
 			newCube[faceName] = newFace;
 		}
+		console.log("updating this.state");
 		this.setState({ cube: newCube, moveSequence: "" });
+		console.log(this.state);
 	}
 
 	// loads a save state, as defined by sequence of moves
-	loadState(moveSequence) {
+	async loadState(moveSequence) {
 		console.log("loadState: " + moveSequence);
 		console.log(moveSequence);
 		const sequencePriorToLoad = this.state.moveSequence;
@@ -122,7 +126,7 @@ class Cube extends React.Component {
 
 		const sequence = moveSequence.split(" ");
 
-		this.loadInitialState();
+		await this.loadInitialState(); // annoying that await is necessary for this.setState
 
 		for (const move of sequence) {
 			try {
@@ -188,6 +192,9 @@ class Cube extends React.Component {
 			case "":
 			case " ":
 				return;
+			case "~":
+				this.loadInitialState();
+				return;
 
 			case "F":
 				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
@@ -196,6 +203,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.posX, axes.x, +0.5);
 				break;
 			case "F²":
+			case "F2":
 				this.rotateHelper(pieceFilter.posX, axes.x, 1);
 				break;
 
@@ -206,6 +214,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.negX, axes.x, -0.5);
 				break;
 			case "B²":
+			case "B2":
 				this.rotateHelper(pieceFilter.negX, axes.x, 1);
 				break;
 
@@ -216,6 +225,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.posY, axes.y, 0.5);
 				break;
 			case "U²":
+			case "U2":
 				this.rotateHelper(pieceFilter.posY, axes.y, 1);
 				break;
 
@@ -226,6 +236,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.negY, axes.y, -0.5);
 				break;
 			case "D²":
+			case "D2":
 				this.rotateHelper(pieceFilter.negY, axes.y, 1);
 				break;
 
@@ -236,6 +247,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.posZ, axes.z, +0.5);
 				break;
 			case "L²":
+			case "L2":
 				this.rotateHelper(pieceFilter.posZ, axes.z, 1);
 				break;
 
@@ -246,6 +258,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.negZ, axes.z, -0.5);
 				break;
 			case "R²":
+			case "R2":
 				this.rotateHelper(pieceFilter.negZ, axes.z, 1);
 				break;
 
@@ -257,6 +270,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.all, axes.z, -0.5);
 				break;
 			case "x²":
+			case "x2":
 				this.rotateHelper(pieceFilter.all, axes.z, 1);
 				break;
 
@@ -267,6 +281,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.all, axes.y, +0.5);
 				break;
 			case "y²":
+			case "y2":
 				this.rotateHelper(pieceFilter.all, axes.y, 1);
 				break;
 
@@ -277,6 +292,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.all, axes.x, +0.5);
 				break;
 			case "z²":
+			case "z2":
 				this.rotateHelper(pieceFilter.all, axes.x, 1);
 				break;
 
@@ -502,8 +518,8 @@ class Cube extends React.Component {
 		);
 	}
 
-	// gets cube. In grid, etc.
-	getRenderableCube() {
+	// creates the cube faces
+	getRenderableFaces() {
 		let renderableFaces = {};
 		for (const faceName of faceNames) {
 			const renderableFace = (
@@ -515,46 +531,68 @@ class Cube extends React.Component {
 			);
 			renderableFaces[faceName] = renderableFace;
 		}
+		return renderableFaces;
+	}
+
+	// gets cube. In grid, etc.
+	getRenderableCubeNet() {
+		const renderableFaces = this.getRenderableFaces();
+		return (
+			<Grid container>
+				<Grid container item xs={4} className="left_column">
+					<Grid item xs={3}></Grid>
+					{renderableFaces["LEFT"]}
+					<Grid item xs={3}></Grid>
+				</Grid>
+				<Grid
+					container
+					direction="column"
+					item
+					xs={4}
+					className="center_column"
+				>
+					{renderableFaces["TOP"]}
+					{renderableFaces["FRONT"]}
+					{renderableFaces["BOTTOM"]}
+				</Grid>
+				<Grid item xs={4} container className="right_column">
+					<Grid item xs={3}></Grid>
+					{renderableFaces["RIGHT"]}
+					<Grid item xs={3}></Grid>
+					{/* {renderableFaces["BACK"]} */}
+				</Grid>
+			</Grid>
+		);
+	}
+
+	getRenderableCube3d() {
+		const renderableFaces = this.getRenderableFaces();
 
 		return (
-			<>
-				<Grid container>
-					<Grid container item xs={4} className="left_column">
-						<Grid item xs={3}></Grid>
-						{renderableFaces["LEFT"]}
-						<Grid item xs={3}></Grid>
-					</Grid>
-					<Grid
-						container
-						direction="column"
-						item
-						xs={4}
-						className="center_column"
-					>
-						{renderableFaces["TOP"]}
-						{renderableFaces["FRONT"]}
-						{renderableFaces["BOTTOM"]}
-					</Grid>
-					<Grid item xs={4} container className="right_column">
-						<Grid item xs={3}></Grid>
-						{renderableFaces["RIGHT"]}
-						<Grid item xs={3}></Grid>
-						{/* {renderableFaces["BACK"]} */}
-					</Grid>
-				</Grid>
-			</>
+			<Grid container className="scene_3d">
+				<div className="cube_3d">
+					{renderableFaces.FRONT}
+					{renderableFaces.BACK}
+					{renderableFaces.RIGHT}
+					{renderableFaces.LEFT}
+					{renderableFaces.TOP}
+					{renderableFaces.BOTTOM}
+				</div>
+			</Grid>
 		);
 	}
 
 	render() {
 		const topControls = this.getTopControls();
 		const bottomControls = this.getBottomControls();
-		const renderableCube = this.getRenderableCube();
+		const cubeNet = this.getRenderableCubeNet();
+		const cube3d = this.getRenderableCube3d();
 
 		return (
 			<>
 				{topControls}
-				{renderableCube}
+				{cubeNet}
+				{/* {cube3d} */}
 				{bottomControls}
 				{this.state.moveSequence}
 			</>

@@ -16,7 +16,7 @@ class CubeFace extends React.Component {
 		const topIndex = (this.props.face.rowColTopLeft[0] == 1) ? 1 : -1;
 		const bottomIndex = (this.props.face.rowColTopLeft[0] == 1) ? -1 : 1;
 		return (
-			<Grid className={`cubeFace ${this.props.face}`} container>
+			<Grid className={`cube_face cube_face--${this.props.face.faceName}`} container>
 				<CubeRow face={this.props.face} row={topIndex} className="top"></CubeRow>
 				<CubeRow face={this.props.face} row={0} className="meat"></CubeRow>
 				<CubeRow face={this.props.face} row={bottomIndex} className="bottom"></CubeRow>
