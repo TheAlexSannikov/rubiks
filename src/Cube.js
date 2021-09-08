@@ -3,6 +3,7 @@ import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
 import NextMoveBox from "./NextMoveBox";
+import SequenceInputField from "./SequenceInputField";
 import { rotate } from "mathjs";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
@@ -12,17 +13,17 @@ const faceCharacteristics = {
 	FRONT: {
 		initialColor: "BLUE",
 		rowColTopLeft: [1, 1],
-		faceCoords: { frozen: "+X"},
+		faceCoords: { frozen: "+X" },
 	},
 	BACK: {
 		initialColor: "GREEN",
-		rowColTopLeft: [-1, -1], // guess
-		faceCoords: { frozen: "-X"},
+		rowColTopLeft: [-1, -1],
+		faceCoords: { frozen: "-X" },
 	},
 	RIGHT: {
 		initialColor: "RED",
 		rowColTopLeft: [1, 1],
-		faceCoords: { frozen: "-Z"},
+		faceCoords: { frozen: "-Z" },
 	},
 	LEFT: {
 		initialColor: "ORANGE",
@@ -61,7 +62,7 @@ class Cube extends React.Component {
 		super(props);
 		this.state = {
 			cube: {},
-			forceRender: 0,
+			moveSequence: "",
 		};
 		this.lookToRightFace = this.lookToRightFace.bind(this);
 		this.lookToLeftFace = this.lookToLeftFace.bind(this);
@@ -74,13 +75,14 @@ class Cube extends React.Component {
 		this.getBottomControls = this.getBottomControls.bind(this);
 
 		this.makeMove = this.makeMove.bind(this);
+		this.loadState = this.loadState.bind(this);
 	}
 
 	componentDidMount() {
 		this.loadInitialState();
 	}
 
-	async loadInitialState() {
+	loadInitialState() {
 		let newCube = {};
 		for (const faceName of faceNames) {
 			let newFace = Object.assign(faceCharacteristics[faceName]);
@@ -105,14 +107,38 @@ class Cube extends React.Component {
 			}
 			newCube[faceName] = newFace;
 		}
-		await this.setState({ cube: newCube });
+		this.setState({ cube: newCube, moveSequence: "" });
+	}
+
+	// loads a save state, as defined by sequence of moves
+	loadState(moveSequence) {
+		console.log("loadState: " + moveSequence);
+		console.log(moveSequence);
+		const sequencePriorToLoad = this.state.moveSequence;
+
+		if (typeof moveSequence != "string") {
+			throw new Error("moveSequence is not a string!");
+		}
+
+		const sequence = moveSequence.split(" ");
+
+		this.loadInitialState();
+
+		for (const move of sequence) {
+			try {
+				this.makeMove(move);
+			} catch (e) {
+				console.log("illegal move: " + move);
+				console.log("loading previous state");
+				this.loadState(sequencePriorToLoad);
+				return;
+			}
+		}
 	}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
 	createPiece(newFace, row, col, color) {
 		const frozenCoord = newFace.faceCoords.frozen;
-		const rowCoord = newFace.faceCoords.row;
-		const colCoord = newFace.faceCoords.col;
 		let coordinates = [];
 		switch (frozenCoord) {
 			case "+X": // front
@@ -142,36 +168,129 @@ class Cube extends React.Component {
 		return piece;
 	}
 
-	
+	// returns an array of pieces that satisfy the filter
+	filterPieces(filter) {
+		const matchingPieces = new Map();
+		[...cubeMap].filter(([k, v]) => {
+			for (let i = 0; i < 3; i++) {
+				const keyObj = JSON.parse(k);
+				if (!(keyObj[i] >= filter.min[i] && keyObj[i] <= filter.max[i]))
+					return;
+			}
+			matchingPieces.set(k, v);
+		});
+		return matchingPieces;
+	}
 
-	// use rotation matrix
-	/**
-	 * modifies cube according to a rotation. effects 5 sides.
-	 * face is the face where rotation happens
-	 * dir is either ccw or cw
-	 */
-	rotateFace(faceOfRotation, dir) {
-		// assume face == front for now. TODO: make versatile
-		// front: positive x
-		// add to sequence
-		// perform rotation on all points with positive x
-		// find all positive x
-		// rotate
+	// accepts a string as input. ie "F", "F'", "F²"
+	makeMove(moveString) {
+		switch (moveString) {
+			case "":
+			case " ":
+				return;
 
-		switch (faceOfRotation) {
-			case "FRONT":
-				this.rotateHelper(pieceFilter.posX, axes.x, dir);
+			case "F":
+				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
 				break;
-			case "BACK":
-				this.rotateHelper(pieceFilter.negX, axes.x, dir); // mirror this?
+			case "F'":
+				this.rotateHelper(pieceFilter.posX, axes.x, +0.5);
+				break;
+			case "F²":
+				this.rotateHelper(pieceFilter.posX, axes.x, 1);
+				break;
+
+			case "B":
+				this.rotateHelper(pieceFilter.negX, axes.x, +0.5);
+				break;
+			case "B'":
+				this.rotateHelper(pieceFilter.negX, axes.x, -0.5);
+				break;
+			case "B²":
+				this.rotateHelper(pieceFilter.negX, axes.x, 1);
+				break;
+
+			case "U":
+				this.rotateHelper(pieceFilter.posY, axes.y, -0.5);
+				break;
+			case "U'":
+				this.rotateHelper(pieceFilter.posY, axes.y, 0.5);
+				break;
+			case "U²":
+				this.rotateHelper(pieceFilter.posY, axes.y, 1);
+				break;
+
+			case "D":
+				this.rotateHelper(pieceFilter.negY, axes.y, +0.5);
+				break;
+			case "D'":
+				this.rotateHelper(pieceFilter.negY, axes.y, -0.5);
+				break;
+			case "D²":
+				this.rotateHelper(pieceFilter.negY, axes.y, 1);
+				break;
+
+			case "L":
+				this.rotateHelper(pieceFilter.posZ, axes.z, -0.5);
+				break;
+			case "L'":
+				this.rotateHelper(pieceFilter.posZ, axes.z, +0.5);
+				break;
+			case "L²":
+				this.rotateHelper(pieceFilter.posZ, axes.z, 1);
+				break;
+
+			case "R":
+				this.rotateHelper(pieceFilter.negZ, axes.z, +0.5);
+				break;
+			case "R'":
+				this.rotateHelper(pieceFilter.negZ, axes.z, -0.5);
+				break;
+			case "R²":
+				this.rotateHelper(pieceFilter.negZ, axes.z, 1);
+				break;
+
+			// whole cube rotations. Unfortunantly, these do not correspond to the grid's coordinates.
+			case "x": // rotate the entire cube on R
+				this.rotateHelper(pieceFilter.all, axes.z, +0.5);
+				break;
+			case "x'":
+				this.rotateHelper(pieceFilter.all, axes.z, -0.5);
+				break;
+			case "x²":
+				this.rotateHelper(pieceFilter.all, axes.z, 1);
+				break;
+
+			case "y": // rotate the entire cube on U
+				this.rotateHelper(pieceFilter.all, axes.y, -0.5);
+				break;
+			case "y'":
+				this.rotateHelper(pieceFilter.all, axes.y, +0.5);
+				break;
+			case "y²":
+				this.rotateHelper(pieceFilter.all, axes.y, 1);
+				break;
+
+			case "z": // rotate the entire cube on F
+				this.rotateHelper(pieceFilter.all, axes.x, -0.5);
+				break;
+			case "z'":
+				this.rotateHelper(pieceFilter.all, axes.x, +0.5);
+				break;
+			case "z²":
+				this.rotateHelper(pieceFilter.all, axes.x, 1);
 				break;
 
 			default:
-				throw new Error("rotate called with an invalid face");
+				throw new Error("move string is illegal: " + moveString);
 		}
+		// record move, updating graphic
+		this.setState({
+			moveSequence: (this.state.moveSequence += moveString + " "),
+		});
+		console.log(this.state.moveSequence);
 	}
 
-	// rotates all faces matching the filter along the specified axis by specified degrees. Updates this.state.cube
+	// may only be called by makeMove, less the graphic may not be updated.
 	rotateHelper(filter, axisOfRotation, piRadians) {
 		console.log(
 			"in rotate helper. args: " +
@@ -213,11 +332,6 @@ class Cube extends React.Component {
 			);
 		}
 
-		// console.log("this.state.cube before");
-		// console.log(this.state.cube);
-		console.log("matchingPieces before");
-		console.log(matchingPieces);
-
 		// calculate new coordinates for each piece - ie which piece will be recolored
 		for (const pieceMap of matchingPiecesBeforeRotation) {
 			let newPieceMatrix = rotate(
@@ -248,153 +362,26 @@ class Cube extends React.Component {
 				color: pieceMap[1].color,
 			});
 		}
-		console.log("matchingPieces after");
-		console.log(matchingPieces);
-
-		this.setState({ forceRender: 1 });
-
-		console.log("this.state.cube after");
-		console.log(this.state.cube);
-	}
-
-	// returns an array of pieces that satisfy the filter
-	filterPieces(filter) {
-		console.log("cubeMap");
-		console.log(cubeMap);
-		const matchingPieces = new Map();
-		[...cubeMap].filter(([k, v]) => {
-			for (let i = 0; i < 3; i++) {
-				const keyObj = JSON.parse(k);
-				if (!(keyObj[i] >= filter.min[i] && keyObj[i] <= filter.max[i]))
-					return;
-			}
-			matchingPieces.set(k, v);
-		});
-		console.log("within filter: filter: ");
-		console.log(filter);
-		console.log("matchingPieces");
-		console.log(matchingPieces);
-		return matchingPieces;
-	}
-
-	// accepts a string as input. ie "F", "F'", "F²"
-	makeMove(moveString) {
-		switch (moveString) {
-			case "F":
-				this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
-				break;
-			case "F'":
-				this.rotateHelper(pieceFilter.posX, axes.x, +0.5);
-				break;
-			case "F²":
-				this.rotateHelper(pieceFilter.posX, axes.x, 1);
-				break;
-
-			case "B": 
-				this.rotateHelper(pieceFilter.negX, axes.x, +0.5);
-				break;
-			case "B'":
-				this.rotateHelper(pieceFilter.negX, axes.x, -0.5);
-				break;
-			case "B²":
-				this.rotateHelper(pieceFilter.negX, axes.x, 1);
-				break;
-
-			case "U": 
-				this.rotateHelper(pieceFilter.posY, axes.y, -0.5);
-				break;
-			case "U'":
-				this.rotateHelper(pieceFilter.posY, axes.y, 0.5);
-				break;
-			case "U²":
-				this.rotateHelper(pieceFilter.posY, axes.y, 1);
-				break;
-				
-			case "D": 
-				this.rotateHelper(pieceFilter.negY, axes.y, +0.5);
-				break;
-			case "D'":
-				this.rotateHelper(pieceFilter.negY, axes.y, -0.5);
-				break;
-			case "D²":
-				this.rotateHelper(pieceFilter.negY, axes.y, 1);
-				break;
-
-			case "L": 
-				this.rotateHelper(pieceFilter.posZ, axes.z, -0.5);
-				break;
-			case "L'":
-				this.rotateHelper(pieceFilter.posZ, axes.z, +0.5);
-				break;
-			case "L²":
-				this.rotateHelper(pieceFilter.posZ, axes.z, 1);
-				break;
-
-			case "R": 
-				this.rotateHelper(pieceFilter.negZ, axes.z, +0.5);
-				break;
-			case "R'":
-				this.rotateHelper(pieceFilter.negZ, axes.z, -0.5);
-				break;
-			case "R²":
-				this.rotateHelper(pieceFilter.negZ, axes.z, 1);
-				break;
-
-			// whole cube rotations. Unfortunantly, these do not correspond to the grid's coordinates.
-			case "x": // rotate the entire cube on R
-				this.rotateHelper(pieceFilter.all, axes.z, +0.5);
-				break;
-			case "x'":
-				this.rotateHelper(pieceFilter.all, axes.z, -0.5);
-				break;
-			case "x²":
-				this.rotateHelper(pieceFilter.all, axes.z, 1);
-				break;
-			
-			case "y": // rotate the entire cube on U
-				this.rotateHelper(pieceFilter.all, axes.y, -0.5);
-				break;
-			case "y'":
-				this.rotateHelper(pieceFilter.all, axes.y, +0.5);
-				break;
-			case "y²":
-				this.rotateHelper(pieceFilter.all, axes.y, 1);
-				break;
-			
-			case "z": // rotate the entire cube on F
-				this.rotateHelper(pieceFilter.all, axes.x, -0.5);
-				break;
-			case "z'":
-				this.rotateHelper(pieceFilter.all, axes.x, +0.5);
-				break;
-			case "z²":
-				this.rotateHelper(pieceFilter.all, axes.x, 1);
-				break;
-			
-
-			default:
-				throw new Error("move string is illegal: " + moveString);
-		}
 	}
 
 	lookToRightFace() {
 		console.log("looking to right face");
-		this.rotateHelper(pieceFilter.all, axes.y, -0.5);
+		this.makeMove("y");
 	}
 
 	lookToLeftFace() {
 		console.log("looking to left face");
-		this.rotateHelper(pieceFilter.all, axes.y, +0.5);
+		this.makeMove("y'");
 	}
 
 	lookToTopFace() {
 		console.log("looking to top face");
-		this.rotateHelper(pieceFilter.all, axes.z, -0.5);
+		this.makeMove("x'");
 	}
 
 	lookToBottomFace() {
 		console.log("looking to bottom face");
-		this.rotateHelper(pieceFilter.all, axes.z, +0.5);
+		this.makeMove("x");
 	}
 
 	rotateFrontCW() {
@@ -494,7 +481,6 @@ class Cube extends React.Component {
 				</div>
 
 				<NextMoveBox makeMove={this.makeMove}></NextMoveBox>
-
 				<div className="controls controls-bottom">
 					<label>
 						{" "}
@@ -508,6 +494,10 @@ class Cube extends React.Component {
 						/>
 					</label>
 				</div>
+
+				<SequenceInputField
+					loadState={this.loadState}
+				></SequenceInputField>
 			</>
 		);
 	}
@@ -529,26 +519,26 @@ class Cube extends React.Component {
 		return (
 			<>
 				<Grid container>
-					<Grid container item xs="4" className="left_column">
-						<Grid item xs="3"></Grid>
+					<Grid container item xs={4} className="left_column">
+						<Grid item xs={3}></Grid>
 						{renderableFaces["LEFT"]}
-						<Grid item xs="3"></Grid>
+						<Grid item xs={3}></Grid>
 					</Grid>
 					<Grid
 						container
 						direction="column"
 						item
-						xs="4"
+						xs={4}
 						className="center_column"
 					>
 						{renderableFaces["TOP"]}
 						{renderableFaces["FRONT"]}
 						{renderableFaces["BOTTOM"]}
 					</Grid>
-					<Grid container item xs="4" className="right_column">
-						<Grid item xs="3"></Grid>
+					<Grid item xs={4} container className="right_column">
+						<Grid item xs={3}></Grid>
 						{renderableFaces["RIGHT"]}
-						<Grid item xs="3"></Grid>
+						<Grid item xs={3}></Grid>
 						{/* {renderableFaces["BACK"]} */}
 					</Grid>
 				</Grid>
@@ -560,11 +550,13 @@ class Cube extends React.Component {
 		const topControls = this.getTopControls();
 		const bottomControls = this.getBottomControls();
 		const renderableCube = this.getRenderableCube();
+
 		return (
 			<>
 				{topControls}
 				{renderableCube}
 				{bottomControls}
+				{this.state.moveSequence}
 			</>
 		);
 	}

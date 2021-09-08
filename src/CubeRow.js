@@ -26,7 +26,7 @@ function CubeRow(props) {
 	const rightIndex = leftIndex === 1 ? -1 : 1;
 
 	let row = (
-		<Grid container xs={12} className="cubeRow">
+		<Grid container className="cubeRow">
 			{piecesOfRow[leftIndex]}
 			{piecesOfRow[0]}
 			{piecesOfRow[rightIndex]}
