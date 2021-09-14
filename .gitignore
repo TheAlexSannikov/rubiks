@@ -25,4 +25,5 @@ yarn-debug.log*
 yarn-error.log*
 reference/login.png
 
+frontend/node_modules/*
 backend/node_modules/*
