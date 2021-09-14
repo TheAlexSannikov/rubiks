@@ -4,6 +4,7 @@ import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
 import NextMoveBox from "./NextMoveBox";
 import SequenceInputField from "./SequenceInputField";
+import SaveSequenceField from "./SaveSequenceField";
 import { rotate } from "mathjs";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
@@ -76,6 +77,7 @@ class Cube extends React.Component {
 
 		this.makeMove = this.makeMove.bind(this);
 		this.loadState = this.loadState.bind(this);
+		this.saveSequence = this.saveSequence.bind(this);
 		this.getRenderableFaces = this.getRenderableFaces.bind(this);
 	}
 
@@ -138,6 +140,11 @@ class Cube extends React.Component {
 				return;
 			}
 		}
+	}
+
+	// saves the current sequence. Must later match delete pin in order to delete.
+	saveSequence(saveName, deletePin) {
+		
 	}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
@@ -514,6 +521,9 @@ class Cube extends React.Component {
 				<SequenceInputField
 					loadState={this.loadState}
 				></SequenceInputField>
+				<SaveSequenceField
+					saveSequence={this.saveSequence}
+				></SaveSequenceField>
 			</>
 		);
 	}
