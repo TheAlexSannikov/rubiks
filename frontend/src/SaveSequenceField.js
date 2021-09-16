@@ -1,4 +1,5 @@
 import React from "react";
+import RestaurantDataService from "./services/restaurant";
 import "./App.css";
 
 class SaveSequenceField extends React.Component {
@@ -15,9 +16,18 @@ class SaveSequenceField extends React.Component {
 	}
 
 	handleSubmit() {
-		this.props.saveSequence(this.state.value);
-		this.setState({ value: "" });
+		console.log("here1");
+		// this.props.saveSequence(this.state.value);
+		// this.setState({ value: "" });
 		// event.preventDefault();
+		console.log("here2");
+		RestaurantDataService.getAll()
+			.then((response) => {
+				console.log(response.data);
+			})
+			.catch((e) => {
+				console.log(e);
+			});
 	}
 
 	render() {

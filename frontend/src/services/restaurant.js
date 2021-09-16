@@ -1,8 +1,9 @@
 import http from "../http-common";
 
 class RestaurantDataService {
-  getAll(page = 0) {
-    return http.get(`restaurants?page=${page}`);
+  getAll() {
+    console.log("here");
+    return http.get();
   }
 
   get(id) {

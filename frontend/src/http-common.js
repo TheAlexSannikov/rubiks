@@ -1,3 +1,6 @@
+/**
+ * provides some utilities for db
+ */
 import axios from "axios";
 
 export default axios.create({
