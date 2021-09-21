@@ -6,6 +6,8 @@ import NextMoveBox from "./NextMoveBox";
 import SequenceInputField from "./SequenceInputField";
 import SaveSequenceField from "./SaveSequenceField";
 import { rotate } from "mathjs";
+import Button from "react-bootstrap/Button";
+import SequenceDataService from "./services/SequenceDataService";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
 
@@ -118,9 +120,10 @@ class Cube extends React.Component {
 
 	// loads a save state, as defined by sequence of moves
 	async loadState(moveSequence) {
-		console.log("loadState: " + moveSequence);
+		console.log("loadState: ");
 		console.log(moveSequence);
 		const sequencePriorToLoad = this.state.moveSequence;
+		const cubePriorToLoad = JSON.parse(JSON.stringify(this.state.cube));
 
 		if (typeof moveSequence != "string") {
 			throw new Error("moveSequence is not a string!");
@@ -136,16 +139,25 @@ class Cube extends React.Component {
 			} catch (e) {
 				console.log("illegal move: " + move);
 				console.log("loading previous state");
-				this.loadState(sequencePriorToLoad);
+				this.setState({
+					cube: cubePriorToLoad,
+					moveSequence: sequencePriorToLoad,
+				});
 				return;
 			}
 		}
 	}
 
-	// saves the current sequence. Must later match delete pin in order to delete.
-	saveSequence(saveName, deletePin) {
-		
+	// get all sequences
+	async getAllSavedSequences() {
+		let allSequences = await SequenceDataService.getAll();
+		console.log(allSequences);
+		let sequence = await SequenceDataService.get(69);
+		console.log(sequence);
 	}
+
+	// saves the current sequence. Must later match delete pin in order to delete.
+	saveSequence(saveName, deletePin) {}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
 	createPiece(newFace, row, col, color) {
@@ -182,7 +194,7 @@ class Cube extends React.Component {
 	// returns an array of pieces that satisfy the filter
 	filterPieces(filter) {
 		const matchingPieces = new Map();
-		[...cubeMap].filter(([k, v]) => {
+		[...cubeMap].forEach(([k, v]) => {
 			for (let i = 0; i < 3; i++) {
 				const keyObj = JSON.parse(k);
 				if (!(keyObj[i] >= filter.min[i] && keyObj[i] <= filter.max[i]))
@@ -269,7 +281,7 @@ class Cube extends React.Component {
 				this.rotateHelper(pieceFilter.negZ, axes.z, 1);
 				break;
 
-			// whole cube rotations. Unfortunantly, these do not correspond to the grid's coordinates.
+			// whole cube rotations. Unfortunately, these do not correspond to the grid's coordinates.
 			case "x": // rotate the entire cube on R
 				this.rotateHelper(pieceFilter.all, axes.z, +0.5);
 				break;
@@ -306,9 +318,10 @@ class Cube extends React.Component {
 			default:
 				throw new Error("move string is illegal: " + moveString);
 		}
+
 		// record move, updating graphic
 		this.setState({
-			moveSequence: (this.state.moveSequence += moveString + " "),
+			moveSequence: this.state.moveSequence + moveString + " ",
 		});
 		console.log(this.state.moveSequence);
 	}
@@ -342,7 +355,7 @@ class Cube extends React.Component {
 					"axisOfRotation is not valid: " + axisOfRotation
 				);
 		}
-		// matchignPieces is directly mapped to cube. matchingPiecesBeforeRotation has their colors before the rotation.
+		// matchingPieces is directly mapped to cube. matchingPiecesBeforeRotation has their colors before the rotation.
 		let matchingPieces = this.filterPieces(filter);
 
 		// shallow copy matchingPieces
@@ -367,7 +380,7 @@ class Cube extends React.Component {
 			for (let i = 0; i < 3; i++)
 				newPieceMatrix[i] = Math.round(newPieceMatrix[i]);
 
-			// update color
+			// sanity check
 			if (!matchingPieces.has(JSON.stringify(newPieceMatrix))) {
 				console.log(newPieceMatrix);
 				throw new Error(
@@ -375,13 +388,13 @@ class Cube extends React.Component {
 				);
 			}
 
+			// update color
 			let pieceToBeUpdated = matchingPieces.get(
 				JSON.stringify(newPieceMatrix)
 			);
 			pieceToBeUpdated.color = pieceMap[1].color;
 
 			matchingPieces.set(JSON.stringify(newPieceMatrix), {
-				// coordinates: newPieceMatrix, // should be the same
 				color: pieceMap[1].color,
 			});
 		}
@@ -409,17 +422,17 @@ class Cube extends React.Component {
 
 	rotateFrontCW() {
 		console.log("rotate front CW");
-		this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
+		this.makeMove("F");
 	}
 
 	rotateFrontCCW() {
 		console.log("rotate front CCW");
-		this.rotateHelper(pieceFilter.posX, axes.x, -0.5);
+		this.makeMove("F'");
 	}
 
 	rotateFront180Deg(cube) {
 		console.log("rotate front 180 degrees");
-		this.rotateHelper(pieceFilter.posX, axes.x, 1);
+		this.makeMove("F²");
 	}
 
 	getTopControls() {
@@ -524,6 +537,9 @@ class Cube extends React.Component {
 				<SaveSequenceField
 					saveSequence={this.saveSequence}
 				></SaveSequenceField>
+				<Button onClick={this.getAllSavedSequences}>
+					get all saved sequences
+				</Button>
 			</>
 		);
 	}

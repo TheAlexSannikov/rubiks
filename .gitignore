@@ -27,3 +27,4 @@ reference/login.png
 
 frontend/node_modules/*
 backend/node_modules/*
+.vscode/settings.json

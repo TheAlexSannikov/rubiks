@@ -1,5 +1,5 @@
 import React from "react";
-import RestaurantDataService from "./services/restaurant";
+import CubeDataService from "./services/restaurant";
 import "./App.css";
 
 class SaveSequenceField extends React.Component {
@@ -21,7 +21,7 @@ class SaveSequenceField extends React.Component {
 		// this.setState({ value: "" });
 		// event.preventDefault();
 		console.log("here2");
-		RestaurantDataService.getAll()
+		CubeDataService.getAll()
 			.then((response) => {
 				console.log(response.data);
 			})
@@ -39,7 +39,7 @@ class SaveSequenceField extends React.Component {
 					value={this.state.value}
 					onChange={this.handleChange}
 					onKeyPress={(e) => {
-						if (e.key === "Enter") {
+						if (e.key === "Enter") { 
 							this.handleSubmit();
 						}
 					}}

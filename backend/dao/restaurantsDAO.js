@@ -1,5 +1,5 @@
 import mongodb from "mongodb";
-const ObjectId = mongodb.ObjectID;
+const ObjectId = mongodb.ObjectId;
 let restaurants;
 
 export default class RestaurantsDAO {
