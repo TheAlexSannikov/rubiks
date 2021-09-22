@@ -2,6 +2,8 @@ import SavesDAO from "../dao/savesDAO.js";
 
 export default class SavesController {
 	static async apiGetSaves(req, res, next) {
+		console.log("inside apiGetSaves");
+
 		const sequencesPerPage = req.query.sequencesPerPage
 			? parseInt(req.query.sequencesPerPage, 10)
 			: 20;
@@ -13,6 +15,7 @@ export default class SavesController {
 		} else if (req.query.sequenceStartsWith) {
 			filters.sequenceStartsWith = req.query.sequenceStartsWith;
 		} else if (req.query.name) {
+			console.log(`req.query.name: ${req.query.name}`);
 			filters.name = req.query.name;
 		}
 
@@ -23,18 +26,20 @@ export default class SavesController {
 		});
 
 		const response = {
-			saves: sequenceList,
+			sequenceList: sequenceList,
 			page: page,
 			filters: filters,
 			entries_per_page: sequencesPerPage,
 			total_results: totalNumSaves,
 		};
+		console.log("happy");
+		console.log(response);
 		res.json(response);
 	}
 
 	static async apiGetSavesById(req, res, next) {
 		try {
-			let id = req.params.id || {};
+			let id = req.body.id || {};
 			let sequence = await SavesDAO.getSaveById(id);
 			if (!sequence) {
 				res.status(404).json({ error: "Not found" });
@@ -47,15 +52,22 @@ export default class SavesController {
 		}
 	}
 
-	// saves a sequence by a name. POST.
+	// POST to /sequences. Saves a sequence by a name.
 	static async apiPostNewSave(req, res, next) {
 		try {
-			const name = req.params.name;
-			const sequence = req.params.name;
+			const name = req.body.name;
+			const sequence = req.body.sequence;
 			const date = new Date();
 
-			if (name === undefined || sequence === undefined || sequence === "")
+			if (
+				name === undefined ||
+				sequence === undefined ||
+				sequence === ""
+			) {
+				console.log("req: ");
+				console.log(req);
 				throw new Error("malformatted save! req: " + req);
+			}
 
 			const postResponse = await SavesDAO.postNewSave(name, sequence); // not sure if correct?
 			if (!sequence) {
@@ -63,10 +75,11 @@ export default class SavesController {
 				return;
 			}
 			// happy path
-			res.json(postResponse); 
-
+			res.json(postResponse);
+			console.log("happy");
 		} catch (e) {
-			console.log(`api, ${e}`);
+			console.log(`saves.controller.js: apiPostNewSave. error: `);
+			console.log(e);
 			res.status(500).json({ error: e });
 		}
 	}
@@ -82,11 +95,20 @@ export default class SavesController {
 			`inside unimplemented method: SavesController.apiDeleteSave()`
 		);
 	}
-	
-	static async apiGetAllSaves(req, res, next) {
 
-		console.error(
-			`inside unimplemented method: SavesController.apiGetAllSaves()`
-		);
+	static async apiGetAllSaves(req, res, next) {
+		try {
+			let sequences = await SavesDAO.getSaves();
+			if (!sequences) {
+				res.status(404).json({ error: "Not found" });
+				return;
+			}
+			console.log("saves.controller: apiGetAllSaves() returned:");
+			console.log(sequences);
+			res.json(sequences);
+		} catch (e) {
+			console.log(`api, ${e}`);
+			res.status(500).json({ error: e });
+		}
 	}
 }

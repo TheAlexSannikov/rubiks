@@ -13,12 +13,12 @@ class SequenceDataService {
 
   find(query, by = "name", page = 0) {
     console.log(`inside SequenceDataService.find(${query}, ${by}, ${page})`);
-    return http.get(`sequences?${by}=${query}&page=${page}`);
+    return http.get(`find?${by}=${query}&page=${page}`);
   } 
 
   saveNewSequence(data) {
     console.log(`inside SequenceDataService.saveNewSequence(${data})`);
-    return http.post("/review-new", data);
+    return http.post("", data);
   }
 
   updateSequence(data) {

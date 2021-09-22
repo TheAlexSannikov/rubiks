@@ -10,7 +10,7 @@ export default class SavesDAO {
 		try {
 			sequences = await conn
 				.db(process.env.SAVES_NS)
-				.collection("cube_stuff");
+				.collection("sequences");
 		} catch (e) {
 			console.error(
 				`Unable to establish a collection handle in savesDAO: ${e}`
@@ -105,8 +105,18 @@ export default class SavesDAO {
 		}
 	}
 
-	
+	// attempts to add a sequence to db.
 	static async postNewSave(name, sequence) {
-		console.error(`inside unimplemented method: savesDAO.postNewSave`);
+		try {
+			const sequenceToBeSaves = {
+				name: name,
+				sequence: sequence,
+			};
+
+			return await sequences.insertOne(sequenceToBeSaves);
+		} catch (e) {
+			console.error(`savesDAO.js: Unable to post sequence: ${e}`);
+			return { error: e };
+		}
 	}
 }

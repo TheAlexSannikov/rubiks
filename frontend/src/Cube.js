@@ -3,8 +3,7 @@ import "./App.css";
 import { Grid } from "@material-ui/core";
 import CubeFace from "./CubeFace";
 import NextMoveBox from "./NextMoveBox";
-import SequenceInputField from "./SequenceInputField";
-import SaveSequenceField from "./SaveSequenceField";
+import DataEntryField from "./DataEntryField";
 import { rotate } from "mathjs";
 import Button from "react-bootstrap/Button";
 import SequenceDataService from "./services/SequenceDataService";
@@ -66,6 +65,7 @@ class Cube extends React.Component {
 		this.state = {
 			cube: {},
 			moveSequence: "",
+			dbSequences: [],
 		};
 		this.lookToRightFace = this.lookToRightFace.bind(this);
 		this.lookToLeftFace = this.lookToLeftFace.bind(this);
@@ -81,6 +81,8 @@ class Cube extends React.Component {
 		this.loadState = this.loadState.bind(this);
 		this.saveSequence = this.saveSequence.bind(this);
 		this.getRenderableFaces = this.getRenderableFaces.bind(this);
+		this.getAllSavedSequences = this.getAllSavedSequences.bind(this);
+		this.getSequencesByName = this.getSequencesByName.bind(this);
 	}
 
 	componentDidMount() {
@@ -148,16 +150,44 @@ class Cube extends React.Component {
 		}
 	}
 
-	// get all sequences
+	// get all sequences from database
 	async getAllSavedSequences() {
 		let allSequences = await SequenceDataService.getAll();
-		console.log(allSequences);
-		let sequence = await SequenceDataService.get(69);
-		console.log(sequence);
+
+		if (
+			allSequences === undefined ||
+			allSequences["data"]["sequenceList"] === undefined
+		)
+			throw new Error("sequences is undefined");
+		console.log(allSequences["data"]["sequenceList"]);
+		this.setState({ dbSequences: allSequences["data"]["sequenceList"] });
 	}
 
-	// saves the current sequence. Must later match delete pin in order to delete.
-	saveSequence(saveName, deletePin) {}
+	// get a sequences by name
+	async getSequencesByName(name) {
+		let allSequences = await SequenceDataService.find(name);
+
+		if (
+			allSequences === undefined ||
+			allSequences["data"]["sequenceList"] === undefined
+		)
+			throw new Error("sequences is undefined");
+
+		console.log(allSequences["data"]["sequenceList"]);
+		this.setState({ dbSequences: allSequences["data"]["sequenceList"] });
+		if(allSequences["data"]["sequenceList"].length > 0)
+			this.loadState(allSequences["data"]["sequenceList"][0]["sequence"])
+	}
+
+	// saves the current sequence.
+	// TODO: Must later match delete pin in order to delete.
+	async saveSequence(saveName) {
+		const data = { name: saveName, sequence: this.state.moveSequence };
+		console.log(`Cube.saveSequence(${saveName})`);
+		console.log(data);
+		let saveResponse = await SequenceDataService.saveNewSequence(data);
+		console.log(saveResponse);
+	}
 
 	// helper to loadInitialState. frozenCoord is set to +/- 1.5, other coordinates depend on row/col
 	createPiece(newFace, row, col, color) {
@@ -531,12 +561,19 @@ class Cube extends React.Component {
 					</label>
 				</div>
 
-				<SequenceInputField
-					loadState={this.loadState}
-				></SequenceInputField>
-				<SaveSequenceField
-					saveSequence={this.saveSequence}
-				></SaveSequenceField>
+				<DataEntryField
+					label="sequence"
+					onEnter={this.loadState}
+				></DataEntryField>
+				<DataEntryField
+					label=" save as:"
+					onEnter={this.saveSequence}
+				></DataEntryField>
+				<DataEntryField
+					label=" search for sequence"
+					onEnter={this.getSequencesByName}
+				></DataEntryField>
+
 				<Button onClick={this.getAllSavedSequences}>
 					get all saved sequences
 				</Button>

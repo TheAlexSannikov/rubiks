@@ -5,10 +5,11 @@ const router = express.Router();
 
 router
 	.route("/")
-	.get(SavesCtrl.apiGetSaves)
 	.post(SavesCtrl.apiPostNewSave)
 	.put(SavesCtrl.apiUpdateSave)
 	.delete(SavesCtrl.apiDeleteSave);
+
+router.route("/find").get(SavesCtrl.apiGetSaves);
 
 router.route("/getAll").get(SavesCtrl.apiGetAllSaves);
 
