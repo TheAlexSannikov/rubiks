@@ -111,6 +111,7 @@ export default class SavesDAO {
 			const sequenceToBeSaves = {
 				name: name,
 				sequence: sequence,
+				date: new Date(),
 			};
 
 			return await sequences.insertOne(sequenceToBeSaves);

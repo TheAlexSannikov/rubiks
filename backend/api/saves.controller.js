@@ -57,7 +57,6 @@ export default class SavesController {
 		try {
 			const name = req.body.name;
 			const sequence = req.body.sequence;
-			const date = new Date();
 
 			if (
 				name === undefined ||
