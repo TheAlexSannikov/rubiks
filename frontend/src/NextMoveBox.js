@@ -20,9 +20,9 @@ class NextMoveBox extends React.Component {
 
 	render() {
 		return (
-			<form onSubmit={this.handleSubmit}>
+			<form onSubmit={this.handleSubmit} className="u_center">
 				<select
-					className="nextMoveBox"
+					className="nextMoveBox "
 					value={this.state.value}
 					onChange={this.handleChange}
 					onKeyPress={(e) => {
@@ -58,16 +58,16 @@ class NextMoveBox extends React.Component {
 					<option value="R'">R'</option>
 					<option value="R²">R²</option>
 
-					<option value="x">x</option>
-					<option value="x'">x'</option>
+					<option value="x">x look bottom</option>
+					<option value="x'">x' look top</option>
 					<option value="x²">x²</option>
 
-					<option value="y">y</option>
-					<option value="y'">y'</option>
+					<option value="y">y look right</option>
+					<option value="y'">y' look left</option>
 					<option value="y²">y²</option>
 
-					<option value="z">z</option>
-					<option value="z'">z'</option>
+					<option value="z">z rotate CW</option>
+					<option value="z'">z' rotate CCW</option>
 					<option value="z²">z²</option>
 				</select>
 			</form>

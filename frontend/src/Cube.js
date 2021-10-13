@@ -67,14 +67,7 @@ class Cube extends React.Component {
 			moveSequence: "",
 			dbSequences: [],
 		};
-		this.lookToRightFace = this.lookToRightFace.bind(this);
-		this.lookToLeftFace = this.lookToLeftFace.bind(this);
-		this.lookToTopFace = this.lookToTopFace.bind(this);
-		this.lookToBottomFace = this.lookToBottomFace.bind(this);
-		this.rotateFrontCW = this.rotateFrontCW.bind(this);
-		this.rotateFront180Deg = this.rotateFront180Deg.bind(this);
-		this.rotateFrontCCW = this.rotateFrontCCW.bind(this);
-		this.getTopControls = this.getTopControls.bind(this);
+
 		this.getBottomControls = this.getBottomControls.bind(this);
 
 		this.makeMove = this.makeMove.bind(this);
@@ -175,8 +168,8 @@ class Cube extends React.Component {
 
 		console.log(allSequences["data"]["sequenceList"]);
 		this.setState({ dbSequences: allSequences["data"]["sequenceList"] });
-		if(allSequences["data"]["sequenceList"].length > 0)
-			this.loadState(allSequences["data"]["sequenceList"][0]["sequence"])
+		if (allSequences["data"]["sequenceList"].length > 0)
+			this.loadState(allSequences["data"]["sequenceList"][0]["sequence"]);
 	}
 
 	// saves the current sequence.
@@ -430,136 +423,10 @@ class Cube extends React.Component {
 		}
 	}
 
-	lookToRightFace() {
-		console.log("looking to right face");
-		this.makeMove("y");
-	}
-
-	lookToLeftFace() {
-		console.log("looking to left face");
-		this.makeMove("y'");
-	}
-
-	lookToTopFace() {
-		console.log("looking to top face");
-		this.makeMove("x'");
-	}
-
-	lookToBottomFace() {
-		console.log("looking to bottom face");
-		this.makeMove("x");
-	}
-
-	rotateFrontCW() {
-		console.log("rotate front CW");
-		this.makeMove("F");
-	}
-
-	rotateFrontCCW() {
-		console.log("rotate front CCW");
-		this.makeMove("F'");
-	}
-
-	rotateFront180Deg(cube) {
-		console.log("rotate front 180 degrees");
-		this.makeMove("F²");
-	}
-
-	getTopControls() {
-		return (
-			<>
-				<div className="controls controls-top">
-					<label>
-						{" "}
-						look to left
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={this.lookToLeftFace}
-						/>
-					</label>
-					<label>
-						{" "}
-						look to top
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={this.lookToTopFace}
-						/>
-					</label>
-					<label>
-						{" "}
-						look to bottom
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={this.lookToBottomFace}
-						/>
-					</label>
-					<label>
-						{" "}
-						look to right
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={this.lookToRightFace}
-						/>
-					</label>
-				</div>
-			</>
-		);
-	}
-
 	getBottomControls() {
 		return (
-			<>
-				<div className="controls controls-bottom">
-					<label>
-						{" "}
-						rotate front 180 degrees
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={() => {
-								this.setState({
-									faces: this.rotateFront180Deg(
-										this.state.cube
-									),
-								});
-							}}
-						/>
-					</label>
-				</div>
-				<div className="controls controls-bottom">
-					<label>
-						{" "}
-						rotate front CCW
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={() => {
-								this.setState({
-									faces: this.rotateFrontCCW(),
-								});
-							}}
-						/>
-					</label>
-				</div>
-
+			<div className="controls controls-bottom">
 				<NextMoveBox makeMove={this.makeMove}></NextMoveBox>
-				<div className="controls controls-bottom">
-					<label>
-						{" "}
-						reset
-						<input
-							type="checkbox"
-							className="checkbox"
-							onChange={() => {
-								this.loadInitialState();
-							}}
-						/>
-					</label>
-				</div>
 
 				<DataEntryField
 					label="sequence"
@@ -577,7 +444,7 @@ class Cube extends React.Component {
 				<Button onClick={this.getAllSavedSequences}>
 					get all saved sequences
 				</Button>
-			</>
+			</div>
 		);
 	}
 
@@ -586,11 +453,7 @@ class Cube extends React.Component {
 		let renderableFaces = {};
 		for (const faceName of faceNames) {
 			const renderableFace = (
-				<CubeFace
-					face={this.state.cube[faceName]}
-					// lookToFace={this.lookToTopFace} // TODO: lookToFace={this.lookToFace(top)};
-					// rotateFace={...} // TODO
-				/>
+				<CubeFace face={this.state.cube[faceName]} />
 			);
 			renderableFaces[faceName] = renderableFace;
 		}
@@ -633,29 +496,25 @@ class Cube extends React.Component {
 
 		return (
 			<Grid container className="scene_3d">
-				<div className="cube_3d">
-					{renderableFaces.FRONT}
-					{renderableFaces.BACK}
-					{renderableFaces.RIGHT}
-					{renderableFaces.LEFT}
-					{renderableFaces.TOP}
-					{renderableFaces.BOTTOM}
-				</div>
+				{renderableFaces.FRONT}
+				{/* {renderableFaces.BACK} */}
+				{/* {renderableFaces.RIGHT} */}
+				{renderableFaces.LEFT}
+				{renderableFaces.TOP}
+				{/* {renderableFaces.BOTTOM} */}
 			</Grid>
 		);
 	}
 
 	render() {
-		const topControls = this.getTopControls();
 		const bottomControls = this.getBottomControls();
 		const cubeNet = this.getRenderableCubeNet();
 		const cube3d = this.getRenderableCube3d();
 
 		return (
 			<>
-				{topControls}
-				{cubeNet}
-				{/* {cube3d} */}
+				{/* {cubeNet} */}
+				{cube3d}
 				{bottomControls}
 				{this.state.moveSequence}
 			</>
