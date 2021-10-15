@@ -6,6 +6,7 @@ import NextMoveBox from "./NextMoveBox";
 import DataEntryField from "./DataEntryField";
 import { rotate } from "mathjs";
 import Button from "react-bootstrap/Button";
+import KeyboardEventHandler from "react-keyboard-event-handler";
 import SequenceDataService from "./services/SequenceDataService";
 
 const faceNames = ["BOTTOM", "FRONT", "RIGHT", "BACK", "LEFT", "TOP"];
@@ -76,6 +77,7 @@ class Cube extends React.Component {
 		this.getRenderableFaces = this.getRenderableFaces.bind(this);
 		this.getAllSavedSequences = this.getAllSavedSequences.bind(this);
 		this.getSequencesByName = this.getSequencesByName.bind(this);
+		this.handleGlobalKeyPress = this.handleGlobalKeyPress.bind(this);
 	}
 
 	componentDidMount() {
@@ -140,6 +142,27 @@ class Cube extends React.Component {
 				});
 				return;
 			}
+		}
+	}
+
+	handleGlobalKeyPress(key) {
+		console.log(`${key} detected`);
+
+		switch (key) {
+			case "right":
+				this.makeMove("R");
+				break;
+			case "left":
+				this.makeMove("L");
+				break;
+			case "up":
+				this.makeMove("U");
+				break;
+			case "down":
+				this.makeMove("D");
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -497,11 +520,8 @@ class Cube extends React.Component {
 		return (
 			<Grid container className="scene_3d">
 				{renderableFaces.FRONT}
-				{/* {renderableFaces.BACK} */}
-				{/* {renderableFaces.RIGHT} */}
 				{renderableFaces.LEFT}
 				{renderableFaces.TOP}
-				{/* {renderableFaces.BOTTOM} */}
 			</Grid>
 		);
 	}
@@ -512,12 +532,24 @@ class Cube extends React.Component {
 		const cube3d = this.getRenderableCube3d();
 
 		return (
-			<>
-				{/* {cubeNet} */}
-				{cube3d}
-				{bottomControls}
-				{this.state.moveSequence}
-			</>
+			<div className="keyboardListener">
+				<KeyboardEventHandler
+					handleKeys={["right", "left", "up", "down"]}
+					handleEventType="keydown"
+					// isExclusive="false"
+					// isDisabled={!this.props.currentTab}
+					// onKeyEvent={this.handleGlobalKeyPress}
+					// onKeyEvent={(key, e) => this.handleGlobalKeyPress(key)}
+					// onKeyEvent={(key, event) => {
+					// 	console.log(this.props.displayMode + " " + key);
+					// }}
+					onKeyEvent={this.handleGlobalKeyPress}
+				>
+					{cube3d}
+					{bottomControls}
+					{this.state.moveSequence}
+				</KeyboardEventHandler>
+			</div>
 		);
 	}
 }
